@@ -6,14 +6,14 @@ export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
       server: {
-        port: 5173,
+        port: 3001,
         strictPort: false,
-        host: '127.0.0.1',
+        host: 'SE_Scholarship_System',
+        allowedHosts: ['se_scholarship_system'],
       },
       plugins: [react()],
       define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
+        'process.env.API_KEY': JSON.stringify(env.API_KEY),
       },
       resolve: {
         alias: {
