@@ -29,14 +29,8 @@ const AccountManagementScreen: React.FC<AccountManagementScreenProps> = ({
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<Role.REVIEWER | Role.COMMITTEE>(Role.REVIEWER);
 
-  const getNextId = (selectedRole: Role.REVIEWER | Role.COMMITTEE) => {
-    const prefix = selectedRole === Role.REVIEWER ? 'REV' : 'COM';
-    const nextIndex = accounts
-      .filter(account => account.id.startsWith(prefix))
-      .map(account => Number(account.id.replace(prefix, '')))
-      .filter(Number.isFinite)
-      .reduce((max, value) => Math.max(max, value), 0) + 1;
-    return `${prefix}${String(nextIndex).padStart(4, '0')}`;
+  const getNextId = () => {
+    return 'Auto-generated';
   };
 
   const handleCreate = () => {
@@ -123,7 +117,7 @@ const AccountManagementScreen: React.FC<AccountManagementScreenProps> = ({
                   <option value={Role.REVIEWER}>Reviewer</option>
                   <option value={Role.COMMITTEE}>Scholarship Committee</option>
                 </select>
-                <p className="text-xs text-slate-400 mt-2">Auto-generated ID: {getNextId(role)}</p>
+                <p className="text-xs text-slate-400 mt-2">Auto-generated ID: {getNextId()}</p>
               </div>
             </div>
 

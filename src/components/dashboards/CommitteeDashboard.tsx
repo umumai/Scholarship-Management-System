@@ -5,8 +5,8 @@ type CommitteeDashboardProps = {
   committeeName: string;
   scholarships: Scholarship[];
   applications: Application[];
-  reviewers: string[];
-  onAssignReviewer: (applicationId: string, reviewerName: string) => void;
+  reviewers: { id: string; name: string }[];
+  onAssignReviewer: (applicationId: string, reviewerId: string, reviewerName: string) => void;
   onDecision: (applicationId: string, decision: 'Awarded' | 'Rejected') => void;
 };
 
@@ -158,12 +158,15 @@ const CommitteeDashboard: React.FC<CommitteeDashboardProps> = ({
                         <select
                           className="px-3 py-2 border border-slate-200 rounded-xl text-sm"
                           value={application.assignedReviewer || ''}
-                          onChange={event => onAssignReviewer(application.id, event.target.value)}
+                          onChange={event => {
+                            const reviewer = reviewers.find(item => item.name === event.target.value);
+                            onAssignReviewer(application.id, reviewer?.id || '', reviewer?.name || '');
+                          }}
                         >
                           <option value="">Assign reviewer</option>
                           {reviewers.map(reviewer => (
-                            <option key={reviewer} value={reviewer}>
-                              {reviewer}
+                            <option key={reviewer.id} value={reviewer.name}>
+                              {reviewer.name}
                             </option>
                           ))}
                         </select>

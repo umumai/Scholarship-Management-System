@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Role, Scholarship, Application, ReviewEvaluation } from '../types';
+import { Role, Scholarship, Application, ReviewEvaluation, DocumentType } from '../types';
+import { api, API_BASE_URL, ApiApplication, ApiDocument, ApiReview } from '../api';
 import StudentDashboard from './dashboards/StudentDashboard';
 import ReviewerDashboard from './dashboards/ReviewerDashboard';
 import CommitteeDashboard from './dashboards/CommitteeDashboard';
@@ -73,71 +74,24 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
   // Application Flow State
   const [activeStep, setActiveStep] = useState(0); // 0 = Identity Verification
   const [selectedScholarship, setSelectedScholarship] = useState<Scholarship | null>(null);
-  const [uploadedFile, setUploadedFile] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [verifyingPassword, setVerifyingPassword] = useState('');
+  const [authToken, setAuthToken] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [registerName, setRegisterName] = useState('');
+  const [registerEmail, setRegisterEmail] = useState('');
+  const [registerPassword, setRegisterPassword] = useState('');
 
   const samplePdfDataUrl = 'data:application/pdf;base64,JVBERi0xLjQKJcKlwrHDqwoKMSAwIG9iago8PC9UeXBlL0NhdGFsb2cvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iago8PC9UeXBlL1BhZ2VzL0tpZHNbMyAwIFJdL0NvdW50IDE+PgplbmRvYmoKMyAwIG9iago8PC9UeXBlL1BhZ2UvUGFyZW50IDIgMCBSL01lZGlhQm94WzAgMCA1OTUuMjggODQxLjg5XS9Db250ZW50cyA0IDAgUi9SZXNvdXJjZXM8PC9Gb250PDwvRjEgNSAwIFI+Pj4+PgplbmRvYmoKNCAwIG9iago8PC9MZW5ndGggMTY+PnN0cmVhbQpCVAovRjEgMTIgVGYKNDAgNzAwIFRkCihNb2NrIFBERikgVGoKRVQKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8L1R5cGUvRm9udC9TdWJ0eXBlL1R5cGUxL0Jhc2VGb250L0hlbHZldGljYT4+CmVuZG9iagoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDk1IDAwMDAwIG4gCjAwMDAwMDAxNzIgMDAwMDAgbiAKMDAwMDAwMDI0MSAwMDAwMCBuIAowMDAwMDAwMzU5IDAwMDAwIG4gCjAwMDAwMDA0NTQgMDAwMDAgbiAKdHJhaWxlcgo8PC9Sb290IDEgMCBSL1NpemUgNj4+CnN0YXJ0eHJlZgo1NjcKJSVFT0Y=';
   const mockDocxUrl = '/documents/mock-essay.docx';
 
-  // Mock Global State
-  const [scholarships, setScholarships] = useState<Scholarship[]>([
-    { id: '1', name: 'Global Merit Scholarship 2024', amount: 'RM15,000', deadline: '2024-12-31', description: 'Awarded for academic excellence.', criteria: ['GPA > 3.8', 'Leadership activities', 'SPM Results'] },
-    { id: '2', name: 'Future Engineers Fund', amount: 'RM10,000', deadline: '2024-06-15', description: 'Supports STEM students.', criteria: ['Major in Engineering', 'Undergraduate level'] },
-    { id: '3', name: 'Community Leadership Award', amount: 'RM5,000', deadline: '2024-11-20', description: 'For local community impacts.', criteria: ['50+ hours community service', 'Local residency'] },
-  ]);
-
-  const [applications, setApplications] = useState<Application[]>([
-    {
-      id: 'app1',
-      scholarshipId: '1',
-      studentName: 'Alex Rivera',
-      status: 'Under Review',
-      submissionDate: '2024-05-12',
-      assignedReviewer: 'Dr. Maya Lewis',
-      documents: [
-        { id: 'doc-app1-1', name: 'SPM Certificate.pdf', type: 'pdf', url: samplePdfDataUrl },
-        { id: 'doc-app1-2', name: 'Transcript.png', type: 'png', url: mmuLogoUrl },
-        { id: 'doc-app1-3', name: 'Personal Statement.docx', type: 'docx', url: mockDocxUrl, previewUrl: mmuLogoUrl },
-      ],
-      review: {
-        status: 'Submitted',
-        reviewerName: 'Dr. Maya Lewis',
-        scores: [
-          { criteria: 'GPA > 3.8', score: 9 },
-          { criteria: 'Leadership activities', score: 8 },
-          { criteria: 'SPM Results', score: 9 },
-        ],
-        overallScore: 8.7,
-        comments: 'Excellent academic record with consistent leadership roles.',
-        submittedAt: '2024-05-20',
-      },
-    },
-    {
-      id: 'app2',
-      scholarshipId: '1',
-      studentName: 'Priya Sharma',
-      status: 'Under Review',
-      submissionDate: '2024-05-18',
-      assignedReviewer: 'Dr. Maya Lewis',
-      documents: [
-        { id: 'doc-app2-1', name: 'Income Statement.pdf', type: 'pdf', url: samplePdfDataUrl },
-        { id: 'doc-app2-2', name: 'Community Work.png', type: 'png', url: mmuLogoUrl },
-      ],
-      review: {
-        status: 'Pending',
-        reviewerName: 'Dr. Maya Lewis',
-        scores: [],
-        overallScore: 0,
-        comments: '',
-      },
-    },
-    { id: 'app3', scholarshipId: '2', studentName: 'Samuel Lee', status: 'Submitted', submissionDate: '2024-05-20' },
-  ]);
-  const [reviewers] = useState<string[]>([
-    'Dr. Maya Lewis',
-    'Prof. Lina Wei',
-    'Dr. Omar Hakim',
-  ]);
+  // Backend Data
+  const [scholarships, setScholarships] = useState<Scholarship[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [reviewers, setReviewers] = useState<{ id: string; name: string }[]>([]);
   const [managedAccounts, setManagedAccounts] = useState<ManagedAccount[]>([]);
   const [systemLogs] = useState<SystemLogEntry[]>([
     {
@@ -208,10 +162,87 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
 
   const reviewerDisplayName = ROLE_DISPLAY_NAME[Role.REVIEWER];
 
-  // Mock User State
+  const roleFromApi = (role: string): Role => {
+    switch (role) {
+      case 'student':
+        return Role.STUDENT;
+      case 'reviewer':
+        return Role.REVIEWER;
+      case 'committee':
+        return Role.COMMITTEE;
+      case 'admin':
+        return Role.ADMIN;
+      default:
+        return Role.STUDENT;
+    }
+  };
+
+  const roleToApi = (role: Role) => {
+    switch (role) {
+      case Role.REVIEWER:
+        return 'reviewer';
+      case Role.COMMITTEE:
+        return 'committee';
+      case Role.ADMIN:
+        return 'admin';
+      default:
+        return 'student';
+    }
+  };
+
+  const mapDocuments = (documents?: ApiDocument[]) => {
+    if (!documents) {
+      return [];
+    }
+    return documents.map(doc => {
+      const url = `${API_BASE_URL}${doc.url}`;
+      const extension = doc.filename.split('.').pop()?.toLowerCase() || 'pdf';
+      const type: DocumentType = (extension === 'png' || extension === 'jpg' || extension === 'jpeg')
+        ? 'png'
+        : extension === 'docx'
+          ? 'docx'
+          : 'pdf';
+      return {
+        id: String(doc.id),
+        name: doc.filename,
+        type,
+        url,
+        previewUrl: type === 'png' ? url : undefined,
+      };
+    });
+  };
+
+  const mapReview = (review?: ApiReview | null): ReviewEvaluation | undefined => {
+    if (!review) {
+      return undefined;
+    }
+    const scores = JSON.parse(review.scores_json || '[]') as { criteria: string; score: number }[];
+    return {
+      status: review.submitted_at ? 'Submitted' : 'Pending',
+      reviewerName: review.reviewer_name ?? 'Reviewer',
+      scores,
+      overallScore: review.overall_score,
+      comments: review.comments,
+      submittedAt: review.submitted_at || undefined,
+    };
+  };
+
+  const mapApplication = (application: ApiApplication): Application => {
+    return {
+      id: String(application.id),
+      scholarshipId: String(application.scholarship_id),
+      studentName: application.student_name || 'Student',
+      status: application.status as Application['status'],
+      submissionDate: application.submission_date || undefined,
+      assignedReviewer: application.assigned_reviewer || undefined,
+      review: mapReview(application.review),
+      documents: mapDocuments(application.documents),
+    };
+  };
+
   const [userData, setUserData] = useState<UserData>({
-    name: 'Alex Rivera',
-    email: 'alex.rivera@university.edu',
+    name: '',
+    email: '',
     id: 'STU0001',
     program: 'Software Engineering',
     dept: 'Faculty of Computing',
@@ -222,8 +253,14 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
   // Helpers
   const goToDashboard = () => setFrame('dashboard');
   const handleLogout = () => {
+    setAuthToken(null);
+    localStorage.removeItem('sms_token');
     setIsLoggedIn(false);
     setSelectedRole(null);
+    setScholarships([]);
+    setApplications([]);
+    setReviewers([]);
+    setManagedAccounts([]);
     setFrame('landing');
   };
 
@@ -297,6 +334,120 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
 
   const showTopPanel = !isLoggedIn;
 
+  const loadDashboardData = async (token: string, userRole: Role) => {
+    setIsLoadingData(true);
+    try {
+      const scholarshipData = await api.listScholarships(token);
+      setScholarships(
+        scholarshipData.map((scholarship) => ({
+          id: String(scholarship.id),
+          name: scholarship.name,
+          amount: scholarship.amount,
+          deadline: scholarship.deadline,
+          description: scholarship.description,
+          criteria: scholarship.criteria || [],
+        }))
+      );
+
+      const applicationData = await api.listApplications(token);
+      let mappedApplications = applicationData.map(mapApplication);
+
+      if (userRole === Role.REVIEWER || userRole === Role.COMMITTEE || userRole === Role.ADMIN) {
+        const reviewData = await api.listReviews(token);
+        mappedApplications = mappedApplications.map((application) => {
+          const review = reviewData.find((item) => String(item.application_id) === application.id);
+          return {
+            ...application,
+            review: mapReview(review),
+          };
+        });
+      }
+
+      setApplications(mappedApplications);
+
+      if (userRole === Role.COMMITTEE || userRole === Role.ADMIN) {
+        const reviewerAccounts = await api.listUsersByRole(token, 'reviewer');
+        setReviewers(
+          reviewerAccounts.map((reviewer) => ({
+            id: String(reviewer.id),
+            name: reviewer.name,
+          }))
+        );
+      }
+
+      if (userRole === Role.ADMIN) {
+        const users = await api.listUsers(token);
+        const accounts = users
+          .filter((user) => user.role === 'reviewer' || user.role === 'committee')
+          .map((user) => ({
+            id: `USR${String(user.id).padStart(4, '0')}`,
+            name: user.name,
+            email: user.email,
+            role: (user.role === 'reviewer' ? Role.REVIEWER : Role.COMMITTEE) as Role.REVIEWER | Role.COMMITTEE,
+            createdAt: new Date().toISOString().split('T')[0],
+            status: 'Active' as const,
+          }));
+        setManagedAccounts(accounts);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  const loadCurrentUser = async (token: string) => {
+    const currentUser = await api.me(token);
+    const mappedRole = roleFromApi(currentUser.role);
+    setSelectedRole(mappedRole);
+    setUserData((prev) => ({
+      ...prev,
+      name: currentUser.name,
+      email: currentUser.email,
+    }));
+    setIsLoggedIn(true);
+    setFrame('dashboard');
+    await loadDashboardData(token, mappedRole);
+  };
+
+  const handleLogin = async () => {
+    setAuthError(null);
+    if (!loginEmail || !loginPassword) {
+      setAuthError('Please enter your email and password.');
+      return;
+    }
+    try {
+      const response = await api.login(loginEmail, loginPassword);
+      setAuthToken(response.access_token);
+      localStorage.setItem('sms_token', response.access_token);
+      await loadCurrentUser(response.access_token);
+    } catch (error) {
+      setAuthError('Invalid email or password.');
+    }
+  };
+
+  const handleRegister = async () => {
+    setAuthError(null);
+    if (!registerName || !registerEmail || !registerPassword) {
+      setAuthError('Please complete all fields.');
+      return;
+    }
+    try {
+      await api.register({
+        name: registerName,
+        email: registerEmail,
+        password: registerPassword,
+        role: 'student',
+      });
+      const response = await api.login(registerEmail, registerPassword);
+      setAuthToken(response.access_token);
+      localStorage.setItem('sms_token', response.access_token);
+      await loadCurrentUser(response.access_token);
+    } catch (error) {
+      setAuthError('Registration failed. Please try a different email.');
+    }
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get('reviewerDashboard') === '1') {
@@ -306,6 +457,16 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
       setFrame('dashboard');
     }
   }, [location.search]);
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem('sms_token');
+    if (storedToken) {
+      setAuthToken(storedToken);
+      loadCurrentUser(storedToken).catch(() => {
+        localStorage.removeItem('sms_token');
+      });
+    }
+  }, []);
 
   const startApplication = (scholarship: Scholarship) => {
     setSelectedScholarship(scholarship);
@@ -347,16 +508,63 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
     if (!confirmed) {
       return;
     }
-    setScholarships(prev => prev.filter(item => item.id !== scholarship.id));
+    if (!authToken) {
+      alert('Please log in again.');
+      return;
+    }
+    api.deleteScholarship(authToken, Number(scholarship.id))
+      .then(() => {
+        setScholarships(prev => prev.filter(item => item.id !== scholarship.id));
+      })
+      .catch(() => {
+        alert('Unable to delete scholarship.');
+      });
   };
 
-  const saveScholarship = (draft: Scholarship) => {
-    if (scholarshipEditorMode === 'create') {
-      setScholarships(prev => [draft, ...prev]);
-    } else {
-      setScholarships(prev => prev.map(item => item.id === draft.id ? draft : item));
+  const saveScholarship = async (draft: Scholarship) => {
+    if (!authToken) {
+      alert('Please log in again.');
+      return;
     }
-    setFrame('scholarship-list');
+    const payload = {
+      name: draft.name,
+      amount: draft.amount,
+      deadline: draft.deadline,
+      description: draft.description,
+      criteria: draft.criteria,
+    };
+    try {
+      if (scholarshipEditorMode === 'create') {
+        const created = await api.createScholarship(authToken, payload);
+        setScholarships(prev => [
+          {
+            id: String(created.id),
+            name: created.name,
+            amount: created.amount,
+            deadline: created.deadline,
+            description: created.description,
+            criteria: created.criteria || [],
+          },
+          ...prev,
+        ]);
+      } else {
+        const updated = await api.updateScholarship(authToken, Number(draft.id), {
+          ...payload,
+          id: Number(draft.id),
+        });
+        setScholarships(prev => prev.map(item => item.id === draft.id ? {
+          id: String(updated.id),
+          name: updated.name,
+          amount: updated.amount,
+          deadline: updated.deadline,
+          description: updated.description,
+          criteria: updated.criteria || [],
+        } : item));
+      }
+      setFrame('scholarship-list');
+    } catch (error) {
+      alert('Unable to save scholarship.');
+    }
   };
 
   const allowVerificationBypass = true;
@@ -371,72 +579,138 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
   };
 
   const submitApplication = () => {
-    const newApp: Application = {
-      id: `app${Date.now()}`,
-      scholarshipId: selectedScholarship?.id || '',
-      studentName: userData.name,
+    if (!authToken || !selectedScholarship) {
+      alert('Please log in again.');
+      return;
+    }
+    const submissionDate = new Date().toISOString().split('T')[0];
+    api.submitApplication(authToken, {
+      scholarship_id: Number(selectedScholarship.id),
       status: 'Submitted',
-      submissionDate: new Date().toISOString().split('T')[0],
-    };
-    setApplications([newApp, ...applications]);
-    setFrame('dashboard');
-    alert('Application System: Application recorded. Returning to dashboard.');
+      submission_date: submissionDate,
+    })
+      .then(async (application) => {
+        const mapped = mapApplication(application);
+        if (uploadedFile) {
+          try {
+            const document = await api.uploadDocument(authToken, application.id, uploadedFile);
+            mapped.documents = mapDocuments([document]);
+          } catch (error) {
+            console.error(error);
+          }
+        }
+        setApplications(prev => [mapped, ...prev]);
+        setFrame('dashboard');
+        alert('Application submitted.');
+      })
+      .catch(() => {
+        alert('Unable to submit application.');
+      });
   };
 
-  const assignReviewer = (applicationId: string, reviewerName: string) => {
-    setApplications(prev => prev.map(application => {
-      if (application.id !== applicationId) {
-        return application;
-      }
-      return {
-        ...application,
-        assignedReviewer: reviewerName || undefined,
-        status: reviewerName ? 'Under Review' : application.status
-      };
-    }));
+  const assignReviewer = (applicationId: string, reviewerId: string, reviewerName: string) => {
+    if (!authToken) {
+      alert('Please log in again.');
+      return;
+    }
+    api.assignReviewer(authToken, Number(applicationId), Number(reviewerId))
+      .then(() => {
+        setApplications(prev => prev.map(application => {
+          if (application.id !== applicationId) {
+            return application;
+          }
+          return {
+            ...application,
+            assignedReviewer: reviewerName || undefined,
+            status: reviewerName ? 'Under Review' : application.status
+          };
+        }));
+      })
+      .catch(() => {
+        alert('Unable to assign reviewer.');
+      });
   };
 
   const submitReview = (applicationId: string, review: ReviewEvaluation) => {
-    setApplications(prev => prev.map(application => {
-      if (application.id !== applicationId) {
-        return application;
-      }
-      return {
-        ...application,
-        review,
-      };
-    }));
+    if (!authToken) {
+      alert('Please log in again.');
+      return;
+    }
+    api.submitReview(authToken, {
+      application_id: Number(applicationId),
+      scores_json: JSON.stringify(review.scores),
+      overall_score: review.overallScore,
+      comments: review.comments,
+      submitted_at: review.submittedAt || new Date().toISOString().split('T')[0],
+    })
+      .then((savedReview) => {
+        setApplications(prev => prev.map(application => {
+          if (application.id !== applicationId) {
+            return application;
+          }
+          return {
+            ...application,
+            review: mapReview(savedReview),
+          };
+        }));
+        alert('Review submitted successfully.');
+      })
+      .catch(() => {
+        alert('Unable to submit review.');
+      });
   };
 
   const decideApplication = (applicationId: string, decision: 'Awarded' | 'Rejected') => {
-    setApplications(prev => prev.map(application => {
-      if (application.id !== applicationId) {
-        return application;
-      }
-      if (application.status === 'Awarded' || application.status === 'Rejected') {
-        return application;
-      }
-      if (application.status !== 'Under Review') {
-        return application;
-      }
-      return {
-        ...application,
-        status: decision,
-      };
-    }));
+    if (!authToken) {
+      alert('Please log in again.');
+      return;
+    }
+    api.submitDecision(authToken, Number(applicationId), decision)
+      .then(() => {
+        setApplications(prev => prev.map(application => {
+          if (application.id !== applicationId) {
+            return application;
+          }
+          return {
+            ...application,
+            status: decision,
+          };
+        }));
+      })
+      .catch(() => {
+        alert('Unable to submit decision.');
+      });
   };
 
   const createManagedAccount = (account: Omit<ManagedAccount, 'id'>) => {
-    setManagedAccounts(prev => {
-      const prefix = account.role === Role.REVIEWER ? 'REV' : 'COM';
-      const nextIndex = prev
-        .filter(item => item.id.startsWith(prefix))
-        .map(item => Number(item.id.replace(prefix, '')))
-        .filter(Number.isFinite)
-        .reduce((max, value) => Math.max(max, value), 0) + 1;
-      const nextId = `${prefix}${String(nextIndex).padStart(4, '0')}`;
-      return [{ ...account, id: nextId }, ...prev];
-    });
+    if (!authToken) {
+      alert('Please log in again.');
+      return;
+    }
+    const temporaryPassword = 'ChangeMe123';
+    api.createUser(authToken, {
+      name: account.name,
+      email: account.email,
+      password: temporaryPassword,
+      role: roleToApi(account.role),
+    })
+      .then((createdUser) => {
+        setManagedAccounts(prev => [
+          {
+            id: `USR${String(createdUser.id).padStart(4, '0')}`,
+            name: createdUser.name,
+            email: createdUser.email,
+            role: createdUser.role === 'reviewer' ? Role.REVIEWER : Role.COMMITTEE,
+            createdAt: new Date().toISOString().split('T')[0],
+            status: 'Active',
+          },
+          ...prev,
+        ]);
+        alert(`Account created. Temporary password: ${temporaryPassword}`);
+      })
+      .catch(() => {
+        alert('Unable to create account.');
+      });
   };
 
   if (reviewOnly) {
@@ -476,7 +750,7 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
       case Role.REVIEWER:
         return (
           <ReviewerDashboard
-            reviewerName={reviewerDisplayName}
+            reviewerName={userData.name || reviewerDisplayName}
             applications={applications}
           />
         );
@@ -675,7 +949,7 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
     </div>
   );
 
-  const RoleSelectionScreen = () => (
+  const renderRoleSelectionScreen = () => (
     <div className="min-h-screen flex flex-col bg-slate-50">
       {showTopPanel && <TopPanel />}
       <div className="flex-1 flex flex-col items-center justify-center p-8 overflow-y-auto">
@@ -705,7 +979,7 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
     </div>
   );
 
-  const LoginScreen = () => (
+  const renderLoginScreen = () => (
     <div className="min-h-screen flex flex-col bg-slate-100">
       {showTopPanel && <TopPanel />}
       <div className="flex-1 flex items-center justify-center p-8">
@@ -730,35 +1004,79 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
         </div>
         <h2 className="text-2xl font-black text-slate-900 mb-10">{selectedRole} Login</h2>
         <div className="space-y-6">
-          <input type="text" placeholder="ID" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" />
-          <input type="password" placeholder="Password" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" />
-          <button onClick={() => { setIsLoggedIn(true); setFrame('dashboard'); }} className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold shadow-lg active:scale-95 transition-transform">Sign In</button>
-          {selectedRole === Role.STUDENT && <button onClick={() => setFrame('register')} className="w-full py-4 bg-white border-2 border-slate-200 text-slate-900 rounded-xl font-bold hover:bg-slate-50 transition-colors">Register</button>}
+          <input
+            type="email"
+            placeholder="Email"
+            value={loginEmail}
+            onChange={(event) => setLoginEmail(event.currentTarget.value)}
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={loginPassword}
+            onChange={(event) => setLoginPassword(event.currentTarget.value)}
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {authError && <p className="text-sm text-rose-600 font-semibold">{authError}</p>}
+          <button
+            onClick={handleLogin}
+            className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold shadow-lg active:scale-95 transition-transform"
+          >
+            Sign In
+          </button>
+          {selectedRole === Role.STUDENT && (
+            <button
+              onClick={() => setFrame('register')}
+              className="w-full py-4 bg-white border-2 border-slate-200 text-slate-900 rounded-xl font-bold hover:bg-slate-50 transition-colors"
+            >
+              Register
+            </button>
+          )}
         </div>
         </div>
       </div>
     </div>
   );
 
-  const RegisterScreen = () => (
+  const renderRegisterScreen = () => (
     <div className="min-h-screen flex flex-col bg-slate-100">
       {showTopPanel && <TopPanel />}
       <div className="flex-1 flex items-center justify-center p-8 overflow-y-auto">
         <div className="max-w-xl w-full bg-white rounded-3xl shadow-xl p-10 my-8">
         <h2 className="text-3xl font-black text-slate-900 mb-8">Register</h2>
         <div className="flex flex-col gap-6 mb-8">
-           <input type="text" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl outline-none" placeholder="Full Name" />
-           <input type="password" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl outline-none" placeholder="Password" />
-           <input type="email" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl outline-none" placeholder="Email Address" />
+           <input
+             type="text"
+             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl outline-none"
+             placeholder="Full Name"
+             value={registerName}
+             onChange={(event) => setRegisterName(event.currentTarget.value)}
+           />
+           <input
+             type="password"
+             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl outline-none"
+             placeholder="Password"
+             value={registerPassword}
+             onChange={(event) => setRegisterPassword(event.currentTarget.value)}
+           />
+           <input
+             type="email"
+             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl outline-none"
+             placeholder="Email Address"
+             value={registerEmail}
+             onChange={(event) => setRegisterEmail(event.currentTarget.value)}
+           />
         </div>
-        <button onClick={() => setFrame('login')} className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg">Create Account</button>
+        {authError && <p className="text-sm text-rose-600 font-semibold mb-4">{authError}</p>}
+        <button onClick={handleRegister} className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg">Create Account</button>
         </div>
       </div>
     </div>
   );
 
 
-  const ApplicationFlow = () => (
+  const renderApplicationFlow = () => (
     <div className="min-h-screen flex flex-col bg-white">
       {showTopPanel && <TopPanel />}
       <div className="flex-1 p-8 overflow-y-auto">
@@ -839,13 +1157,22 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
         {activeStep === 2 && (
           <div className="space-y-8 animate-in slide-in-from-right duration-300">
             <h3 className="text-xl font-bold border-l-4 border-blue-600 pl-4">Document Upload</h3>
-            <div className="p-12 border-4 border-dashed border-slate-100 rounded-3xl text-center bg-slate-50/50 hover:bg-slate-50 transition-all cursor-pointer group" onClick={() => setUploadedFile('SPM_Certificate_Rivera.pdf')}>
+            <label className="p-12 border-4 border-dashed border-slate-100 rounded-3xl text-center bg-slate-50/50 hover:bg-slate-50 transition-all cursor-pointer group block">
+              <input
+                type="file"
+                className="hidden"
+                accept=".pdf,.png,.jpg,.jpeg,.docx"
+                onChange={(event) => {
+                  const file = event.currentTarget.files?.[0] || null;
+                  setUploadedFile(file);
+                }}
+              />
               <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-slate-300 mx-auto mb-4 shadow-sm group-hover:text-blue-500 transition-colors">
                 {ICONS.File}
               </div>
               {uploadedFile ? (
                 <div className="text-emerald-600 font-bold">
-                  ✓ {uploadedFile} Ready
+                  ✓ {uploadedFile.name} Ready
                   <p className="text-[10px] text-slate-400 mt-1 uppercase">Click to change file</p>
                 </div>
               ) : (
@@ -854,7 +1181,7 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
                   <p className="text-sm">Mandatory for verification (PDF/JPG/PNG)</p>
                 </div>
               )}
-            </div>
+            </label>
             <div className="flex gap-4 pt-6">
               <button onClick={() => setActiveStep(1)} className="flex-1 py-4 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold transition-all active:scale-95">Back</button>
               <button onClick={() => setActiveStep(3)} className={`flex-1 py-4 text-white rounded-xl font-bold shadow-lg transition-all ${uploadedFile ? 'bg-slate-900 active:scale-95' : 'bg-slate-300 cursor-not-allowed'}`} disabled={!uploadedFile}>Next: Final Confirm</button>
@@ -877,7 +1204,7 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-400 font-bold uppercase tracking-widest">Uploaded Document</span>
                 <span className="text-blue-600 font-bold flex items-center gap-1">
-                  {uploadedFile}
+                  {uploadedFile?.name || 'No document'}
                   {ICONS.File}
                 </span>
               </div>
@@ -1029,9 +1356,9 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
   // --- RENDERER ---
   switch (frame) {
     case 'landing': return <LandingScreen />;
-    case 'choose-role': return <RoleSelectionScreen />;
-    case 'login': return <LoginScreen />;
-    case 'register': return <RegisterScreen />;
+    case 'choose-role': return renderRoleSelectionScreen();
+    case 'login': return renderLoginScreen();
+    case 'register': return renderRegisterScreen();
     case 'dashboard':
     case 'scholarship-list':
     case 'profile':
@@ -1039,7 +1366,7 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
     case 'system-logs':
     case 'system-reports':
     case 'account-management': return <DashboardScreen />;
-    case 'apply-flow': return <ApplicationFlow />;
+    case 'apply-flow': return renderApplicationFlow();
     default: return <LandingScreen />;
   }
 };
