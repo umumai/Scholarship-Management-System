@@ -31,6 +31,113 @@ type Frame =
   | 'apply-flow'
   | 'generic-page';
 
+type PageContent = {
+  title: string;
+  description: string;
+  features: string[];
+  stats?: { label: string; value: string }[];
+  imageIcon: React.ReactNode;
+};
+
+const PAGE_CONTENT_MAP: Record<string, PageContent> = {
+  // Campus
+  'Cyberjaya': {
+    title: 'Cyberjaya Campus',
+    description: 'Located in the heart of Malaysia\'s Silicon Valley, our Cyberjaya campus is a hub of innovation and technology. It features state-of-the-art laboratories, a digital library, and a vibrant startup ecosystem.',
+    features: ['High-tech Innovation Labs', '24/7 Digital Library', 'Startup Incubator', 'Modern Student Accommodation'],
+    stats: [{ label: 'Acres', value: '80' }, { label: 'Students', value: '15,000+' }],
+    imageIcon: <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+  },
+  'Melaka': {
+    title: 'Melaka Campus',
+    description: 'Nestled in the UNESCO World Heritage City, the Melaka campus offers a serene learning environment blending history with modernity. It is renowned for its strong business, law, and creative arts programs.',
+    features: ['Heritage City Setting', 'Mock Courtroom', 'Creative Studios', 'Business Simulation Labs'],
+    stats: [{ label: 'Acres', value: '52' }, { label: 'Students', value: '8,000+' }],
+    imageIcon: <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" /></svg>
+  },
+  // Why MMU
+  'Rankings': {
+    title: 'Our Rankings',
+    description: 'MMU is consistently ranked as one of Malaysia\'s top private universities. We are recognized globally for our excellence in teaching, research, and industry partnerships.',
+    features: ['Top 200 in QS Asia', 'Tier 5 SETARA Rating', 'Premier Digital Tech Uni', 'Award-Winning Research'],
+    imageIcon: <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
+  },
+  'Employability': {
+    title: 'Graduate Employability',
+    description: 'Our graduates are highly sought after by industry leaders. With an employability rate of over 97% within 6 months of graduation, MMU paves the way for a successful career.',
+    features: ['97% Employment Rate', 'Industry-Ready Curriculum', 'Career Development Centre', 'Strong Alumni Network'],
+    imageIcon: <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+  },
+  'Facilities': {
+    title: 'World-Class Facilities',
+    description: 'Experience world-class learning with our cutting-edge facilities, including 24/7 learning points, smart classrooms, industry-standard labs, and comprehensive sports complexes.',
+    features: ['Smart Classrooms', 'Olympic-sized Pool', 'e-Sports Arena', 'Multimedia Labs'],
+    imageIcon: <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+  },
+  'Student Life': {
+    title: 'Student Life',
+    description: 'Life at MMU is vibrant and diverse. Join over 100 clubs and societies, participate in international competitions, and enjoy a campus life filled with cultural and recreational activities.',
+    features: ['100+ Clubs', 'Cultural Festivals', 'Sports Tournaments', 'Leadership Camps'],
+    imageIcon: <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+  },
+  // Field of Study
+  'Engineering': {
+    title: 'Engineering',
+    description: 'Innovate the future with our Engineering programs. From Electronics to Mechanical, our accredited degrees focus on practical skills and industry-relevant technologies.',
+    features: ['BEM Accredited', 'Robotics Labs', 'Industry Projects', 'Expert Faculty'],
+    imageIcon: <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+  },
+  'IT & Computer Science': {
+    title: 'IT & Computer Science',
+    description: 'Lead the digital revolution. Our IT and CS programs cover Artificial Intelligence, Data Science, Cybersecurity, and Software Engineering, preparing you for the tech jobs of tomorrow.',
+    features: ['AI Specialization', 'Cybersecurity Hub', 'Hackathons', 'Tech Industry Partners'],
+    imageIcon: <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+  },
+  'Business': {
+    title: 'Business & Management',
+    description: 'Master the world of commerce. Our Business faculty offers comprehensive programs in Accounting, Finance, Marketing, and Management, accredited by professional bodies.',
+    features: ['ACCA Exemptions', 'Entrepreneurship Focus', 'Corporate Visits', 'Global Case Studies'],
+    imageIcon: <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+  },
+  'Creative Multimedia': {
+    title: 'Creative Multimedia',
+    description: 'Unleash your creativity. As a pioneer in creative multimedia education, we offer programs in Animation, Visual Effects, Interface Design, and Virtual Reality.',
+    features: ['VR/AR Studios', 'Industry Awards', 'Creative Showcase', 'Digital Arts Gallery'],
+    imageIcon: <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+  },
+  'Law': {
+    title: 'Law',
+    description: 'Uphold justice and integrity. Our Law program provides a rigorous legal education, preparing students for the Bar and various legal professions.',
+    features: ['Moot Court', 'Legal Aid Clinic', 'Bar Council Recognized', 'Expert Practitioners'],
+    imageIcon: <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" /></svg>
+  },
+  // Level of Study
+  'Foundation': {
+    title: 'Foundation Programmes',
+    description: 'Start your journey strong. Our Foundation programs provide a solid pre-university education, seamlessly transitioning you into your chosen degree path.',
+    features: ['1-Year Fast Track', 'Direct Degree Entry', 'Comprehensive Basics', 'Scholarship Available'],
+    imageIcon: <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+  },
+  'Diploma': {
+    title: 'Diploma Programmes',
+    description: 'Gain practical skills for the workforce. Our Diploma programs are designed to provide hands-on training and technical expertise for immediate career entry.',
+    features: ['Practical Focus', '2.5 Years Duration', 'Industrial Training', 'Pathway to Degree'],
+    imageIcon: <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+  },
+  'Bachelor\'s Degree': {
+    title: 'Bachelor\'s Degree',
+    description: 'Pursue academic excellence. Our undergraduate degrees combine theoretical knowledge with practical application, shaping you into a competent professional.',
+    features: ['3-4 Years Duration', 'Honours Programs', 'Final Year Project', 'Global Recognition'],
+    imageIcon: <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.083 0 01.665-6.479L12 14z" /></svg>
+  },
+  'Postgraduate': {
+    title: 'Postgraduate Studies',
+    description: 'Advance your knowledge. Our Master\'s and PhD programs offer opportunities for advanced research and specialization under the guidance of expert supervisors.',
+    features: ['Master\'s & PhD', 'Research Grants', 'Flexible Schedules', 'Expert Supervision'],
+    imageIcon: <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+  }
+};
+
 const NAV_ITEMS = {
   campus: { 
     label: 'Campus', 
@@ -92,7 +199,7 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
   
   // Navigation & Support State
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const [genericPageContent, setGenericPageContent] = useState<{title: string, content?: string} | null>(null);
+  const [genericPageContent, setGenericPageContent] = useState<PageContent | null>(null);
   const [showSupportModal, setShowSupportModal] = useState(false);
   
   // Application Flow State
@@ -595,16 +702,72 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
             Back to Home
           </button>
           
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-10 md:p-16 text-center">
-             <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-8 rotate-3">
-                <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+             {/* Header Section */}
+             <div className="bg-slate-900 p-10 md:p-16 text-center relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-full opacity-10">
+                   <svg className="w-full h-full" fill="currentColor" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                         <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" strokeWidth="0.5"/>
+                      </pattern>
+                      <rect width="100" height="100" fill="url(#grid)" />
+                   </svg>
+                </div>
+                
+                <div className="relative z-10">
+                   <div className="w-24 h-24 bg-white/10 text-white rounded-3xl flex items-center justify-center mx-auto mb-8 backdrop-blur-sm shadow-xl">
+                      {genericPageContent?.imageIcon}
+                   </div>
+                   <h1 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight">{genericPageContent?.title || 'Page'}</h1>
+                   <p className="text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
+                     {genericPageContent?.description}
+                   </p>
+                </div>
              </div>
-             <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-6">{genericPageContent?.title || 'Page'}</h1>
-             <p className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
-               {genericPageContent?.content || `Welcome to the ${genericPageContent?.title} section. This page demonstrates the navigation structure for the prototype.`}
-             </p>
-             <div className="mt-12 h-64 bg-slate-100 rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 font-bold uppercase tracking-widest">
-               Content Placeholder
+             
+             {/* Content Section */}
+             <div className="p-10 md:p-16">
+                {/* Stats Grid */}
+                {genericPageContent?.stats && (
+                   <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16 border-b border-slate-100 pb-12">
+                      {genericPageContent.stats.map((stat, idx) => (
+                         <div key={idx} className="text-center">
+                            <p className="text-3xl font-black text-blue-600 mb-1">{stat.value}</p>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{stat.label}</p>
+                         </div>
+                      ))}
+                   </div>
+                )}
+             
+                <div className="grid md:grid-cols-2 gap-12">
+                   <div>
+                      <h3 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
+                         <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                         </div>
+                         Key Highlights
+                      </h3>
+                      <ul className="space-y-4">
+                         {genericPageContent?.features.map((feature, idx) => (
+                            <li key={idx} className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100 hover:bg-blue-50 hover:border-blue-100 transition-colors group">
+                               <div className="w-2 h-2 rounded-full bg-blue-400 mt-2 group-hover:scale-125 transition-transform" />
+                               <span className="text-slate-600 font-medium group-hover:text-blue-700">{feature}</span>
+                            </li>
+                         ))}
+                      </ul>
+                   </div>
+                   
+                   <div className="bg-slate-50 rounded-2xl p-8 border border-slate-100">
+                      <h3 className="text-lg font-bold text-slate-900 mb-4">Want to know more?</h3>
+                      <p className="text-slate-500 mb-6 leading-relaxed">Get detailed information about admission requirements, fees, and scholarship opportunities tailored for you.</p>
+                      <button onClick={() => { setFrame('register'); }} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 mb-4">
+                         Apply Now
+                      </button>
+                      <button className="w-full py-3 bg-white text-slate-600 border border-slate-200 rounded-xl font-bold hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                         Download Brochure
+                      </button>
+                   </div>
+                </div>
              </div>
           </div>
         </div>
@@ -655,7 +818,8 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
                 <button
                   key={option}
                   onClick={() => {
-                    setGenericPageContent({ title: `${NAV_ITEMS.campus.label}: ${option}` });
+                    const content = PAGE_CONTENT_MAP[option];
+                    setGenericPageContent(content || { title: `${NAV_ITEMS.campus.label}: ${option}`, content: 'Content coming soon...' });
                     setFrame('generic-page');
                     setActiveDropdown(null);
                   }}
@@ -685,7 +849,8 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
                 <button
                   key={option}
                   onClick={() => {
-                    setGenericPageContent({ title: `${NAV_ITEMS.whyMMU.label}: ${option}` });
+                    const content = PAGE_CONTENT_MAP[option];
+                    setGenericPageContent(content || { title: `${NAV_ITEMS.whyMMU.label}: ${option}`, content: 'Content coming soon...' });
                     setFrame('generic-page');
                     setActiveDropdown(null);
                   }}
@@ -715,7 +880,8 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
                 <button
                   key={option}
                   onClick={() => {
-                    setGenericPageContent({ title: `${NAV_ITEMS.fieldOfStudy.label}: ${option}` });
+                    const content = PAGE_CONTENT_MAP[option];
+                    setGenericPageContent(content || { title: `${NAV_ITEMS.fieldOfStudy.label}: ${option}`, content: 'Content coming soon...' });
                     setFrame('generic-page');
                     setActiveDropdown(null);
                   }}
@@ -745,7 +911,8 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
                 <button
                   key={option}
                   onClick={() => {
-                    setGenericPageContent({ title: `${NAV_ITEMS.levelOfStudy.label}: ${option}` });
+                    const content = PAGE_CONTENT_MAP[option];
+                    setGenericPageContent(content || { title: `${NAV_ITEMS.levelOfStudy.label}: ${option}`, content: 'Content coming soon...' });
                     setFrame('generic-page');
                     setActiveDropdown(null);
                   }}
