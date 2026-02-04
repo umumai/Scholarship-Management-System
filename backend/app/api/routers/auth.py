@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
@@ -15,7 +16,15 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)) -> UserPublic:
     existing = get_user_by_email(db, user_in.email)
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
-    return create_user(db, user_in)
+    try:
+        return create_user(db, user_in)
+    except IntegrityError as exc:
+        error_message = str(exc.orig) if exc.orig else str(exc)
+        if "users.email" in error_message or "email" in error_message:
+            raise HTTPException(status_code=400, detail="Email already registered") from exc
+        raise HTTPException(status_code=400, detail="Invalid user data") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="Registration failed") from exc
 
 
 @router.post("/login", response_model=TokenResponse)

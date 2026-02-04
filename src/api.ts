@@ -1,4 +1,4 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export type ApiUser = {
   id: number;
@@ -69,7 +69,32 @@ async function apiRequest<T>(path: string, options: RequestOptions = {}): Promis
   });
 
   if (!response.ok) {
-    const message = await response.text();
+    const rawText = await response.text();
+    let message = rawText || 'Request failed';
+    const contentType = response.headers.get('content-type') ?? '';
+    if (contentType.includes('application/json') && rawText) {
+      try {
+        const data = JSON.parse(rawText);
+        if (typeof data?.detail === 'string') {
+          message = data.detail;
+        } else if (Array.isArray(data?.detail)) {
+          const detailMessages = data.detail
+            .map((item: { msg?: string; message?: string }) => item?.msg || item?.message)
+            .filter(Boolean);
+          if (detailMessages.length > 0) {
+            message = detailMessages.join(' ');
+          }
+        } else if (typeof data?.message === 'string') {
+          message = data.message;
+        } else if (typeof data?.error === 'string') {
+          message = data.error;
+        } else {
+          message = JSON.stringify(data);
+        }
+      } catch {
+        // Keep rawText message when JSON parsing fails
+      }
+    }
     throw new Error(message || 'Request failed');
   }
   return response.json();

@@ -439,12 +439,20 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
         password: registerPassword,
         role: 'student',
       });
-      const response = await api.login(registerEmail, registerPassword);
-      setAuthToken(response.access_token);
-      localStorage.setItem('sms_token', response.access_token);
-      await loadCurrentUser(response.access_token);
+      alert('Account creation successful!');
+      setLoginEmail(registerEmail);
+      setLoginPassword('');
+      setRegisterName('');
+      setRegisterEmail('');
+      setRegisterPassword('');
+      setFrame('login');
     } catch (error) {
-      setAuthError('Registration failed. Please try a different email.');
+      const message = error instanceof Error ? error.message : '';
+      if (message) {
+        setAuthError(message);
+      } else {
+        setAuthError('Registration failed. Please try again.');
+      }
     }
   };
 
@@ -457,6 +465,15 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
       setFrame('dashboard');
     }
   }, [location.search]);
+
+  useEffect(() => {
+    setAuthError(null);
+    setLoginEmail('');
+    setLoginPassword('');
+    setRegisterName('');
+    setRegisterEmail('');
+    setRegisterPassword('');
+  }, [frame]);
 
   useEffect(() => {
     const storedToken = localStorage.getItem('sms_token');

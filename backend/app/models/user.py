@@ -16,5 +16,9 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(30), default="student")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
-    applications = relationship("Application", back_populates="student")
+    applications = relationship(
+        "Application",
+        back_populates="student",
+        foreign_keys="Application.student_id",
+    )
     reviews = relationship("Review", back_populates="reviewer")

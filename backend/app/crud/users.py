@@ -17,8 +17,12 @@ def create_user(session: Session, user_in: UserCreate) -> User:
         role=user_in.role,
     )
     session.add(user)
-    session.commit()
-    session.refresh(user)
+    try:
+        session.commit()
+        session.refresh(user)
+    except Exception:
+        session.rollback()
+        raise
     return user
 
 
