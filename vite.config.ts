@@ -9,7 +9,14 @@ export default defineConfig(({ mode }) => {
         port: 3001,
         strictPort: false,
         host: 'SE_Scholarship_System',
-        allowedHosts: ['se_scholarship_system'],
+        allowedHosts: ['se_scholarship_system', 'pseudoviperous-knotless-mauricio.ngrok-free.dev'],
+        proxy: {
+          '/api': {
+            target: 'http://localhost:8000',
+            changeOrigin: true,
+            rewrite: (path) => path.replace(/^\/api/, ''),
+          },
+        },
       },
       plugins: [react()],
       define: {
