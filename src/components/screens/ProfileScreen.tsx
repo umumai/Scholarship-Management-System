@@ -8,6 +8,12 @@ type ProfileDraft = {
   dept: string;
 };
 
+type PasswordDraft = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};
+
 type ProfileScreenProps = {
   showTopPanel: boolean;
   topPanel: React.ReactNode;
@@ -15,7 +21,10 @@ type ProfileScreenProps = {
   userId: string;
   selectedRole: Role | null;
   profileDraft: ProfileDraft;
+  passwordDraft: PasswordDraft;
   onProfileFieldChange: (field: keyof ProfileDraft, value: string) => void;
+  onPasswordFieldChange: (field: keyof PasswordDraft, value: string) => void;
+  onPasswordSave: () => void;
   onDiscard: () => void;
   onSave: () => void;
   onBack: () => void;
@@ -28,7 +37,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   userId,
   selectedRole,
   profileDraft,
+  passwordDraft,
   onProfileFieldChange,
+  onPasswordFieldChange,
+  onPasswordSave,
   onDiscard,
   onSave,
   onBack,
@@ -57,7 +69,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               <h3 className="text-xl font-bold text-slate-900">{userName}</h3>
               <p className="text-slate-400 text-sm uppercase font-bold tracking-widest">
                 {selectedRole}
-                {selectedRole === Role.STUDENT && userId ? ` · ${userId}` : ''}
+                {userId ? ` · ${userId}` : ''}
               </p>
               <button type="button" className="text-blue-600 text-xs font-bold mt-2 hover:underline">
                 Change Photo
@@ -101,6 +113,51 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 onChange={e => onProfileFieldChange('dept', e.target.value)}
                 className="w-full px-4 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
               />
+            </div>
+          </div>
+
+          <div className="border-t pt-8">
+            <h4 className="text-lg font-bold text-slate-900 mb-4">Change Password</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="col-span-2 md:col-span-1">
+                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Current Password</label>
+                <input
+                  type="password"
+                  value={passwordDraft.currentPassword}
+                  onChange={e => onPasswordFieldChange('currentPassword', e.target.value)}
+                  className="w-full px-4 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="••••••••"
+                />
+              </div>
+              <div className="col-span-2 md:col-span-1">
+                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">New Password</label>
+                <input
+                  type="password"
+                  value={passwordDraft.newPassword}
+                  onChange={e => onPasswordFieldChange('newPassword', e.target.value)}
+                  className="w-full px-4 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Create a new password"
+                />
+              </div>
+              <div className="col-span-2 md:col-span-1">
+                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Confirm New Password</label>
+                <input
+                  type="password"
+                  value={passwordDraft.confirmPassword}
+                  onChange={e => onPasswordFieldChange('confirmPassword', e.target.value)}
+                  className="w-full px-4 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Repeat new password"
+                />
+              </div>
+              <div className="col-span-2 md:col-span-1 flex items-end">
+                <button
+                  type="button"
+                  onClick={onPasswordSave}
+                  className="w-full px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all"
+                >
+                  Update Password
+                </button>
+              </div>
             </div>
           </div>
 

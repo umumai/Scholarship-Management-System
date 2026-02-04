@@ -40,6 +40,13 @@ type UserData = {
   phone: string;
 };
 
+type Notification = {
+  id: string;
+  role: Role;
+  message: string;
+  createdAt: string;
+};
+
 type PrototypeViewerProps = {
   reviewOnly?: boolean;
   reviewApplicationId?: string;
@@ -57,6 +64,13 @@ const ROLE_PORTAL_LABEL: Record<Role, string> = {
   [Role.ADMIN]: 'Administrator',
   [Role.REVIEWER]: 'Reviewer Portal',
   [Role.COMMITTEE]: 'Committee Portal',
+};
+
+const ROLE_ID_PREFIX: Record<Role, string> = {
+  [Role.STUDENT]: 'STU',
+  [Role.REVIEWER]: 'REV',
+  [Role.COMMITTEE]: 'COM',
+  [Role.ADMIN]: 'ADM',
 };
 
 const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
@@ -190,6 +204,11 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
     }
   };
 
+  const formatUserId = (role: Role, rawId?: number | string) => {
+    const padded = String(rawId ?? 1).padStart(4, '0');
+    return `${ROLE_ID_PREFIX[role]}${padded}`;
+  };
+
   const mapDocuments = (documents?: ApiDocument[]) => {
     if (!documents) {
       return [];
@@ -243,12 +262,56 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
   const [userData, setUserData] = useState<UserData>({
     name: '',
     email: '',
-    id: 'STU0001',
+    id: formatUserId(Role.STUDENT, 1),
     program: 'Software Engineering',
     dept: 'Faculty of Computing',
     phone: '+1 (555) 012-3456'
   });
   const [profileDraft, setProfileDraft] = useState<UserData>(userData);
+  const [passwordDraft, setPasswordDraft] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [notifications, setNotifications] = useState<Notification[]>([
+    {
+      id: 'notif-student-1',
+      role: Role.STUDENT,
+      message: 'Successfully submitted an application.',
+      createdAt: '2024-05-21 09:12',
+    },
+    {
+      id: 'notif-student-2',
+      role: Role.STUDENT,
+      message: 'Your application has been reviewed.',
+      createdAt: '2024-05-21 11:01',
+    },
+    {
+      id: 'notif-reviewer-1',
+      role: Role.REVIEWER,
+      message: 'You have been assigned to an applicant.',
+      createdAt: '2024-05-20 10:03',
+    },
+    {
+      id: 'notif-reviewer-2',
+      role: Role.REVIEWER,
+      message: 'Successfully reviewed and sent to the committee for approval.',
+      createdAt: '2024-05-20 14:17',
+    },
+    {
+      id: 'notif-committee-1',
+      role: Role.COMMITTEE,
+      message: 'An applicant is ready for approval.',
+      createdAt: '2024-05-21 08:33',
+    },
+    {
+      id: 'notif-admin-1',
+      role: Role.ADMIN,
+      message: 'New scholarship draft requires review.',
+      createdAt: '2024-05-20 09:12',
+    },
+  ]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   // Helpers
   const goToDashboard = () => setFrame('dashboard');
@@ -272,11 +335,31 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
     );
   }, [scholarships, searchQuery]);
 
+  const activeScholarships = useMemo(() => {
+    return scholarships.filter(s => isScholarshipOpen(s.deadline));
+  }, [scholarships]);
+
+  const visibleScholarships = useMemo(() => {
+    if (selectedRole === Role.STUDENT) {
+      return filteredScholarships.filter(s => isScholarshipOpen(s.deadline));
+    }
+    return filteredScholarships;
+  }, [filteredScholarships, selectedRole]);
+
   useEffect(() => {
     if (frame === 'profile') {
       setProfileDraft(userData);
+      setPasswordDraft({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
     }
   }, [frame]);
+
+  useEffect(() => {
+    setShowNotifications(false);
+  }, [frame, selectedRole]);
 
   useEffect(() => {
     if (frame === 'scholarship-list') {
@@ -294,6 +377,31 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
 
   const updateProfileDraft = (field: 'name' | 'email' | 'phone' | 'dept', value: string) => {
     setProfileDraft(prev => ({ ...prev, [field]: value }));
+  };
+
+  const updatePasswordDraft = (field: 'currentPassword' | 'newPassword' | 'confirmPassword', value: string) => {
+    setPasswordDraft(prev => ({ ...prev, [field]: value }));
+  };
+
+  const savePasswordChanges = () => {
+    if (!passwordDraft.currentPassword || !passwordDraft.newPassword || !passwordDraft.confirmPassword) {
+      alert('Please complete all password fields.');
+      return;
+    }
+    if (passwordDraft.newPassword.length < 6) {
+      alert('New password must be at least 6 characters.');
+      return;
+    }
+    if (passwordDraft.newPassword !== passwordDraft.confirmPassword) {
+      alert('New password and confirmation do not match.');
+      return;
+    }
+    setPasswordDraft({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
+    alert('Password updated successfully.');
   };
 
   const reviewApplication = useMemo(() => {
@@ -333,6 +441,29 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
   };
 
   const showTopPanel = !isLoggedIn;
+
+  const addNotification = (role: Role, message: string) => {
+    setNotifications(prev => [
+      {
+        id: `notif-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        role,
+        message,
+        createdAt: new Date().toISOString().replace('T', ' ').slice(0, 16),
+      },
+      ...prev,
+    ]);
+  };
+
+  const isScholarshipOpen = (deadline: string) => {
+    if (!deadline) {
+      return true;
+    }
+    const deadlineDate = new Date(`${deadline}T23:59:59`);
+    if (Number.isNaN(deadlineDate.getTime())) {
+      return true;
+    }
+    return deadlineDate >= new Date();
+  };
 
   const loadDashboardData = async (token: string, userRole: Role) => {
     setIsLoadingData(true);
@@ -404,6 +535,7 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
       ...prev,
       name: currentUser.name,
       email: currentUser.email,
+      id: formatUserId(mappedRole, currentUser.id),
     }));
     setIsLoggedIn(true);
     setFrame('dashboard');
@@ -486,6 +618,14 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
   }, []);
 
   const startApplication = (scholarship: Scholarship) => {
+    if (!isScholarshipOpen(scholarship.deadline)) {
+      alert('This scholarship is closed and no longer accepts applications.');
+      return;
+    }
+    if (hasApplications(scholarship.id)) {
+      alert('You have already applied to this scholarship.');
+      return;
+    }
     setSelectedScholarship(scholarship);
     setActiveStep(0); // Start with Identity Verification
     setUploadedFile(null);
@@ -600,6 +740,14 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
       alert('Please log in again.');
       return;
     }
+    if (!isScholarshipOpen(selectedScholarship.deadline)) {
+      alert('This scholarship is closed and no longer accepts applications.');
+      return;
+    }
+    if (hasApplications(selectedScholarship.id)) {
+      alert('You have already applied to this scholarship.');
+      return;
+    }
     const submissionDate = new Date().toISOString().split('T')[0];
     api.submitApplication(authToken, {
       scholarship_id: Number(selectedScholarship.id),
@@ -617,6 +765,7 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
           }
         }
         setApplications(prev => [mapped, ...prev]);
+        addNotification(Role.STUDENT, `Successfully submitted an application for ${selectedScholarship.name}.`);
         setFrame('dashboard');
         alert('Application submitted.');
       })
@@ -632,6 +781,9 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
     }
     api.assignReviewer(authToken, Number(applicationId), Number(reviewerId))
       .then(() => {
+        const targetApplication = applications.find(app => app.id === applicationId);
+        const scholarshipName = scholarships.find(s => s.id === targetApplication?.scholarshipId)?.name || 'a scholarship';
+        const studentName = targetApplication?.studentName || 'an applicant';
         setApplications(prev => prev.map(application => {
           if (application.id !== applicationId) {
             return application;
@@ -642,6 +794,9 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
             status: reviewerName ? 'Under Review' : application.status
           };
         }));
+        if (reviewerName) {
+          addNotification(Role.REVIEWER, `You have been assigned to ${studentName} for ${scholarshipName}.`);
+        }
       })
       .catch(() => {
         alert('Unable to assign reviewer.');
@@ -661,6 +816,9 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
       submitted_at: review.submittedAt || new Date().toISOString().split('T')[0],
     })
       .then((savedReview) => {
+        const targetApplication = applications.find(app => app.id === applicationId);
+        const scholarshipName = scholarships.find(s => s.id === targetApplication?.scholarshipId)?.name || 'a scholarship';
+        const studentName = targetApplication?.studentName || 'an applicant';
         setApplications(prev => prev.map(application => {
           if (application.id !== applicationId) {
             return application;
@@ -670,6 +828,8 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
             review: mapReview(savedReview),
           };
         }));
+        addNotification(Role.REVIEWER, `Successfully reviewed ${studentName} for ${scholarshipName}.`);
+        addNotification(Role.COMMITTEE, `Review completed for ${studentName} (${scholarshipName}).`);
         alert('Review submitted successfully.');
       })
       .catch(() => {
@@ -684,6 +844,9 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
     }
     api.submitDecision(authToken, Number(applicationId), decision)
       .then(() => {
+        const targetApplication = applications.find(app => app.id === applicationId);
+        const scholarshipName = scholarships.find(s => s.id === targetApplication?.scholarshipId)?.name || 'the scholarship';
+        const studentName = targetApplication?.studentName || 'an applicant';
         setApplications(prev => prev.map(application => {
           if (application.id !== applicationId) {
             return application;
@@ -693,6 +856,12 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
             status: decision,
           };
         }));
+        if (decision === 'Awarded') {
+          addNotification(Role.STUDENT, `Congratulations! ${scholarshipName} has been approved.`);
+        } else {
+          addNotification(Role.STUDENT, `Your request for ${scholarshipName} has been rejected.`);
+        }
+        addNotification(Role.COMMITTEE, `Successfully ${decision === 'Awarded' ? 'approved' : 'rejected'} ${studentName} for ${scholarshipName}.`);
       })
       .catch(() => {
         alert('Unable to submit decision.');
@@ -761,6 +930,7 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
             selectedRole={selectedRole}
             applications={applications}
             scholarships={scholarships}
+            activeScholarships={activeScholarships}
             onFindScholarships={() => setFrame('scholarship-list')}
           />
         );
@@ -979,7 +1149,11 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
             key={role}
             onClick={() => {
               setSelectedRole(role);
-              setUserData(prev => ({ ...prev, name: ROLE_DISPLAY_NAME[role] }));
+              setUserData(prev => ({
+                ...prev,
+                name: ROLE_DISPLAY_NAME[role],
+                id: formatUserId(role, 1),
+              }));
               setFrame('login');
             }}
             className="flex flex-col items-start p-8 bg-white border-2 border-slate-200 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-all text-left group"
@@ -1237,29 +1411,69 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
     </div>
   );
 
-  const DashboardScreen = () => (
-    <div className="min-h-screen flex flex-col bg-slate-100">
-      {showTopPanel && <TopPanel />}
-      <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="bg-blue-600 p-2 rounded-lg text-white">{ICONS.Check}</div>
-          <span className="font-black text-xl text-slate-900 tracking-tight">
-            {selectedRole ? ROLE_PORTAL_LABEL[selectedRole] : 'Student Portal'}
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="text-right hidden sm:block">
-            <p className="text-xs font-bold text-slate-900 leading-none">{userData.name}</p>
-            <p className="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-wider">{selectedRole}</p>
+  const DashboardScreen = () => {
+    const roleNotifications = notifications.filter(item => item.role === selectedRole);
+
+    return (
+      <div className="min-h-screen flex flex-col bg-slate-100">
+        {showTopPanel && <TopPanel />}
+        <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-600 p-2 rounded-lg text-white">{ICONS.Check}</div>
+            <span className="font-black text-xl text-slate-900 tracking-tight">
+              {selectedRole ? ROLE_PORTAL_LABEL[selectedRole] : 'Student Portal'}
+            </span>
           </div>
-          <button onClick={() => setFrame('profile')} className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold border-2 border-white ring-1 ring-slate-100 hover:ring-blue-400 transition-all shadow-sm">
-            {userData.name.charAt(0)}
-          </button>
-          <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Logout">
-             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-          </button>
-        </div>
-      </header>
+          <div className="flex items-center gap-3">
+            <div className="text-right hidden sm:block">
+              <p className="text-xs font-bold text-slate-900 leading-none">{userData.name}</p>
+              <p className="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-wider">{selectedRole}</p>
+            </div>
+            <button onClick={() => setFrame('profile')} className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold border-2 border-white ring-1 ring-slate-100 hover:ring-blue-400 transition-all shadow-sm">
+              {userData.name.charAt(0)}
+            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications(prev => !prev)}
+                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-all relative"
+                title="Notifications"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 11-6 0h6z" />
+                </svg>
+                {roleNotifications.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center">
+                    {roleNotifications.length}
+                  </span>
+                )}
+              </button>
+              {showNotifications && (
+                <div className="absolute right-0 mt-3 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-20">
+                  <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                    <span className="text-sm font-bold text-slate-900">Notifications</span>
+                    <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">
+                      {roleNotifications.length} total
+                    </span>
+                  </div>
+                  <div className="max-h-72 overflow-y-auto divide-y divide-slate-100">
+                    {roleNotifications.map(note => (
+                      <div key={note.id} className="px-4 py-3">
+                        <p className="text-sm text-slate-700 font-semibold">{note.message}</p>
+                        <p className="text-[10px] text-slate-400 mt-1">{note.createdAt}</p>
+                      </div>
+                    ))}
+                    {roleNotifications.length === 0 && (
+                      <div className="px-4 py-6 text-sm text-slate-400">No notifications yet.</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+            <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Logout">
+               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+            </button>
+          </div>
+        </header>
       
       <div className="flex-1 flex overflow-hidden">
         <aside className="w-64 bg-white border-r border-slate-200 hidden lg:flex flex-col p-6 space-y-2">
@@ -1311,7 +1525,7 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
               searchDraft={searchDraft}
               onSearchDraftChange={setSearchDraft}
               onSearchSubmit={applySearch}
-              filteredScholarships={filteredScholarships}
+              filteredScholarships={visibleScholarships}
               onStartApplication={startApplication}
               onCreateScholarship={createScholarship}
               onEditScholarship={editScholarship}
@@ -1326,7 +1540,10 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
               userId={userData.id}
               selectedRole={selectedRole}
               profileDraft={profileDraft}
+              passwordDraft={passwordDraft}
               onProfileFieldChange={updateProfileDraft}
+              onPasswordFieldChange={updatePasswordDraft}
+              onPasswordSave={savePasswordChanges}
               onDiscard={() => setProfileDraft(userData)}
               onSave={saveProfileChanges}
               onBack={goToDashboard}
@@ -1368,7 +1585,8 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
         </main>
       </div>
     </div>
-  );
+    );
+  };
 
   // --- RENDERER ---
   switch (frame) {

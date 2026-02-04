@@ -6,6 +6,7 @@ type StudentDashboardProps = {
   selectedRole: Role | null;
   applications: Application[];
   scholarships: Scholarship[];
+  activeScholarships: Scholarship[];
   onFindScholarships: () => void;
 };
 
@@ -14,6 +15,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
   selectedRole,
   applications,
   scholarships,
+  activeScholarships,
   onFindScholarships,
 }) => {
   const firstName = userName.split(' ')[0];
@@ -48,7 +50,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
         </div>
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Active Listings</p>
-          <p className="text-3xl font-black text-emerald-600">{scholarships.length}</p>
+          <p className="text-3xl font-black text-emerald-600">{activeScholarships.length}</p>
         </div>
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Next Deadline</p>

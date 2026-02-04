@@ -100,9 +100,14 @@ const ScholarshipListScreen: React.FC<ScholarshipListScreenProps> = ({
               {selectedRole === Role.STUDENT ? (
                 <button
                   onClick={() => onStartApplication(s)}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-md hover:bg-blue-700 transition-all active:scale-95"
+                  disabled={hasApplications(s.id)}
+                  className={`px-6 py-2 rounded-xl font-bold text-sm shadow-md transition-all ${
+                    hasApplications(s.id)
+                      ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                      : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'
+                  }`}
                 >
-                  Apply Now
+                  {hasApplications(s.id) ? 'Applied' : 'Apply Now'}
                 </button>
               ) : selectedRole === Role.ADMIN ? (
                 <div className="flex items-center gap-2">
@@ -124,11 +129,7 @@ const ScholarshipListScreen: React.FC<ScholarshipListScreenProps> = ({
                     Delete
                   </button>
                 </div>
-              ) : (
-                <button className="text-slate-400 hover:text-slate-600 font-bold text-sm underline transition-colors">
-                  View Details
-                </button>
-              )}
+              ) : null}
             </div>
           </div>
         ))}

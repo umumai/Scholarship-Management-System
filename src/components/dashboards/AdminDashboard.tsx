@@ -32,9 +32,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminName, scholarships
           <h3 className="text-2xl font-black text-slate-900">Welcome, {adminName}</h3>
           <p className="text-slate-500 text-sm italic">System administration overview</p>
         </div>
-        <button className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm shadow-lg hover:bg-slate-800 transition-all">
-          Create Scholarship
-        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

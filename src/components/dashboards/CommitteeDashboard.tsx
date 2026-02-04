@@ -20,6 +20,7 @@ const CommitteeDashboard: React.FC<CommitteeDashboardProps> = ({
 }) => {
   const [selectedScholarshipId, setSelectedScholarshipId] = useState(scholarships[0]?.id ?? '');
   const [expandedReviewId, setExpandedReviewId] = useState<string | null>(null);
+  const [expandedDetailsId, setExpandedDetailsId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!selectedScholarshipId && scholarships.length > 0) {
@@ -136,6 +137,7 @@ const CommitteeDashboard: React.FC<CommitteeDashboardProps> = ({
                   ? `${application.review.reviewerName} · ${application.review.submittedAt}`
                   : 'Not submitted';
                 const isExpanded = expandedReviewId === application.id;
+                const isDetailsExpanded = expandedDetailsId === application.id;
                 const isFinal = application.status === 'Awarded' || application.status === 'Rejected';
                 const canDecide = application.status === 'Under Review' && reviewStatus === 'Submitted';
 
@@ -176,7 +178,15 @@ const CommitteeDashboard: React.FC<CommitteeDashboardProps> = ({
                               className={`px-4 py-2 rounded-xl text-xs font-bold ${
                                 canDecide ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                               }`}
-                              onClick={() => onDecision(application.id, 'Awarded')}
+                              onClick={() => {
+                                if (!canDecide) {
+                                  return;
+                                }
+                                const confirmed = window.confirm('There is no turning back. Approve this application?');
+                                if (confirmed) {
+                                  onDecision(application.id, 'Awarded');
+                                }
+                              }}
                               disabled={!canDecide}
                             >
                               Approve
@@ -185,7 +195,15 @@ const CommitteeDashboard: React.FC<CommitteeDashboardProps> = ({
                               className={`px-4 py-2 rounded-xl text-xs font-bold ${
                                 canDecide ? 'bg-rose-600 text-white hover:bg-rose-700' : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                               }`}
-                              onClick={() => onDecision(application.id, 'Rejected')}
+                              onClick={() => {
+                                if (!canDecide) {
+                                  return;
+                                }
+                                const confirmed = window.confirm('There is no turning back. Reject this application?');
+                                if (confirmed) {
+                                  onDecision(application.id, 'Rejected');
+                                }
+                              }}
                               disabled={!canDecide}
                             >
                               Reject
@@ -203,8 +221,9 @@ const CommitteeDashboard: React.FC<CommitteeDashboardProps> = ({
                         )}
                         <button
                           className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold"
+                          onClick={() => setExpandedDetailsId(isDetailsExpanded ? null : application.id)}
                         >
-                          View Details
+                          {isDetailsExpanded ? 'Hide Details' : 'View Details'}
                         </button>
                         <button
                           className="px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50"
@@ -221,6 +240,63 @@ const CommitteeDashboard: React.FC<CommitteeDashboardProps> = ({
                     {!canDecide && !isFinal && (
                       <div className="text-[11px] text-slate-400">
                         Decision is available after a submitted review.
+                      </div>
+                    )}
+
+                    {isDetailsExpanded && (
+                      <div className="bg-white border border-slate-100 rounded-2xl p-4 space-y-4">
+                        <div className="flex flex-wrap gap-4 text-xs text-slate-500">
+                          <span>Scholarship: {selectedScholarship?.name || 'Unknown'}</span>
+                          <span>Application ID: {application.id}</span>
+                          <span>Status: {application.status}</span>
+                          <span>Submitted: {application.submissionDate || '-'}</span>
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-400 uppercase mb-2">Applicant Documents</p>
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            {(application.documents || []).map(doc => (
+                              <div key={doc.id} className="border border-slate-200 rounded-2xl p-4 space-y-3">
+                                <div className="flex items-center justify-between gap-4">
+                                  <div>
+                                    <p className="text-sm font-semibold text-slate-700">{doc.name}</p>
+                                    <p className="text-xs text-slate-400 uppercase">{doc.type}</p>
+                                  </div>
+                                  <a
+                                    href={doc.url}
+                                    download
+                                    className="text-xs font-bold text-blue-600 hover:underline"
+                                  >
+                                    Download
+                                  </a>
+                                </div>
+
+                                {doc.type === 'png' && (
+                                  <img src={doc.url} alt={doc.name} className="w-full h-48 object-contain bg-slate-50 rounded-xl border border-slate-100" />
+                                )}
+                                {doc.type === 'pdf' && (
+                                  <iframe
+                                    title={doc.name}
+                                    src={doc.url}
+                                    className="w-full h-48 rounded-xl border border-slate-100 bg-white"
+                                  />
+                                )}
+                                {doc.type === 'docx' && (
+                                  <div className="w-full h-48 rounded-xl border border-slate-100 bg-slate-50 flex flex-col items-center justify-center text-center gap-3">
+                                    {doc.previewUrl ? (
+                                      <img src={doc.previewUrl} alt={`${doc.name} preview`} className="w-16 h-16 object-contain" />
+                                    ) : (
+                                      <div className="w-14 h-14 bg-slate-200 rounded-lg" />
+                                    )}
+                                    <p className="text-xs text-slate-500">Mock DOCX preview</p>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                            {(application.documents || []).length === 0 && (
+                              <div className="text-sm text-slate-400">No documents uploaded for this application.</div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     )}
 
