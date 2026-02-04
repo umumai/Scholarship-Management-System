@@ -6,10 +6,11 @@ from app.crud.applications import (
     create_application,
     list_applications,
     list_applications_for_student,
+    request_missing_documents,
 )
 from app.models.application import Application
 from app.models.user import User
-from app.schemas.application import ApplicationCreate, ApplicationPublic
+from app.schemas.application import ApplicationCreate, ApplicationPublic, DocumentRequestCreate
 from app.schemas.review import ReviewPublic
 from app.schemas.document import DocumentPublic
 
@@ -47,6 +48,10 @@ def _to_public(application: Application) -> ApplicationPublic:
         assigned_reviewer=application.assigned_reviewer.name if application.assigned_reviewer else None,
         status=application.status,
         submission_date=application.submission_date,
+        document_request_reason=application.document_request_reason,
+        requested_documents=application.requested_documents,
+        document_requested_at=application.document_requested_at,
+        document_requested_by=application.document_requested_by,
         review=review,
         documents=documents,
     )
@@ -109,3 +114,25 @@ def submit_decision(
     db.commit()
     db.refresh(application)
     return _to_public(application)
+
+
+@router.post("/{application_id}/request-documents", response_model=ApplicationPublic)
+def request_documents(
+    application_id: int,
+    request_data: DocumentRequestCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_role("reviewer", "committee", "admin")),
+) -> ApplicationPublic:
+    """Request missing documents from applicant."""
+    try:
+        application = request_missing_documents(
+            db,
+            application_id,
+            request_data.missing_documents,
+            request_data.reason,
+            current_user.name,
+            request_data.requested_at,
+        )
+        return _to_public(application)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))

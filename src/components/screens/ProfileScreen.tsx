@@ -84,6 +84,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 type="text"
                 value={profileDraft.name}
                 onChange={e => onProfileFieldChange('name', e.target.value)}
+                autoComplete="off"
                 className="w-full px-4 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </div>
@@ -93,6 +94,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 type="email"
                 value={profileDraft.email}
                 onChange={e => onProfileFieldChange('email', e.target.value)}
+                autoComplete="off"
                 className="w-full px-4 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </div>
@@ -101,6 +103,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               <input
                 type="text"
                 value={profileDraft.phone}
+                autoComplete="off"
                 onChange={e => onProfileFieldChange('phone', e.target.value)}
                 className="w-full px-4 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
               />
@@ -110,6 +113,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               <input
                 type="text"
                 value={profileDraft.dept}
+                autoComplete="off"
                 onChange={e => onProfileFieldChange('dept', e.target.value)}
                 className="w-full px-4 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
               />
@@ -124,6 +128,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 <input
                   type="password"
                   value={passwordDraft.currentPassword}
+                  autoComplete="off"
                   onChange={e => onPasswordFieldChange('currentPassword', e.target.value)}
                   className="w-full px-4 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="••••••••"
@@ -133,6 +138,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 <label className="block text-xs font-bold text-slate-400 uppercase mb-2">New Password</label>
                 <input
                   type="password"
+                  autoComplete="off"
                   value={passwordDraft.newPassword}
                   onChange={e => onPasswordFieldChange('newPassword', e.target.value)}
                   className="w-full px-4 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
@@ -143,6 +149,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Confirm New Password</label>
                 <input
                   type="password"
+                  autoComplete="off"
                   value={passwordDraft.confirmPassword}
                   onChange={e => onPasswordFieldChange('confirmPassword', e.target.value)}
                   className="w-full px-4 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"

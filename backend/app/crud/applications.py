@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+import json
 
 from app.models.application import Application
 from app.schemas.application import ApplicationCreate
@@ -22,6 +23,30 @@ def create_application(
 ) -> Application:
     application = Application(student_id=student_id, **application_in.model_dump())
     session.add(application)
+    session.commit()
+    session.refresh(application)
+    return application
+
+
+def request_missing_documents(
+    session: Session,
+    application_id: int,
+    missing_documents: list[str],
+    reason: str,
+    reviewer_name: str,
+    requested_at: str
+) -> Application:
+    """Update application with document request."""
+    application = session.query(Application).filter(Application.id == application_id).first()
+    if not application:
+        raise ValueError(f"Application {application_id} not found")
+    
+    application.status = "Document Request"
+    application.document_request_reason = reason
+    application.requested_documents = json.dumps(missing_documents)
+    application.document_requested_at = requested_at
+    application.document_requested_by = reviewer_name
+    
     session.commit()
     session.refresh(application)
     return application

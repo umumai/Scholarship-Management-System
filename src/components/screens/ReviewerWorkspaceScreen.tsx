@@ -6,6 +6,7 @@ type ReviewerWorkspaceScreenProps = {
   scholarship: Scholarship | null;
   reviewerName: string;
   onSubmitReview: (applicationId: string, review: ReviewEvaluation) => void;
+  onRequestDocuments?: (applicationId: string, missingDocuments: string[], reason: string) => void;
   onBack: () => void;
 };
 
@@ -14,9 +15,13 @@ const ReviewerWorkspaceScreen: React.FC<ReviewerWorkspaceScreenProps> = ({
   scholarship,
   reviewerName,
   onSubmitReview,
+  onRequestDocuments,
   onBack,
 }) => {
   const [reviewDraft, setReviewDraft] = useState<ReviewEvaluation | null>(null);
+  const [showDocumentRequestModal, setShowDocumentRequestModal] = useState(false);
+  const [selectedMissingDocs, setSelectedMissingDocs] = useState<string[]>([]);
+  const [documentRequestReason, setDocumentRequestReason] = useState('');
 
   useEffect(() => {
     if (!application) {
@@ -224,15 +229,25 @@ const ReviewerWorkspaceScreen: React.FC<ReviewerWorkspaceScreenProps> = ({
             <div className="text-xs text-slate-400">
               {reviewDraft?.submittedAt ? `Submitted: ${reviewDraft.submittedAt}` : 'Not submitted yet.'}
             </div>
-            <button
-              className={`px-6 py-3 rounded-xl text-xs font-bold transition-all ${
-                canSubmit ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-              }`}
-              onClick={handleSubmit}
-              disabled={!canSubmit}
-            >
-              Submit Review
-            </button>
+            <div className="flex gap-3">
+              {canEdit && (
+                <button
+                  className="px-6 py-3 rounded-xl text-xs font-bold transition-all bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100"
+                  onClick={() => setShowDocumentRequestModal(true)}
+                >
+                  Request Missing Documents
+                </button>
+              )}
+              <button
+                className={`px-6 py-3 rounded-xl text-xs font-bold transition-all ${
+                  canSubmit ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                }`}
+                onClick={handleSubmit}
+                disabled={!canSubmit}
+              >
+                Submit Review
+              </button>
+            </div>
           </div>
         </div>
 
@@ -256,9 +271,11 @@ const ReviewerWorkspaceScreen: React.FC<ReviewerWorkspaceScreenProps> = ({
                   <a
                     href={doc.url}
                     download
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-xs font-bold text-blue-600 hover:underline"
                   >
-                    Download
+                    View/Download
                   </a>
                 </div>
 
@@ -266,11 +283,17 @@ const ReviewerWorkspaceScreen: React.FC<ReviewerWorkspaceScreenProps> = ({
                   <img src={doc.url} alt={doc.name} className="w-full h-56 object-contain bg-slate-50 rounded-xl border border-slate-100" />
                 )}
                 {doc.type === 'pdf' && (
-                  <iframe
-                    title={doc.name}
-                    src={doc.url}
-                    className="w-full h-56 rounded-xl border border-slate-100 bg-white"
-                  />
+                  <div className="w-full h-56 rounded-xl border border-slate-100 bg-slate-50 flex items-center justify-center">
+                    <div className="text-center">
+                      <svg className="w-12 h-12 mx-auto text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                      <p className="text-xs text-slate-500">PDF Document</p>
+                      <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">
+                        Open in new tab
+                      </a>
+                    </div>
+                  </div>
                 )}
                 {doc.type === 'docx' && (
                   <div className="w-full h-56 rounded-xl border border-slate-100 bg-slate-50 flex flex-col items-center justify-center text-center gap-3">
@@ -285,11 +308,90 @@ const ReviewerWorkspaceScreen: React.FC<ReviewerWorkspaceScreenProps> = ({
               </div>
             ))}
             {(application.documents || []).length === 0 && (
-              <div className="text-sm text-slate-400">No documents uploaded for this application.</div>
+              <div className="col-span-2 text-center py-8 text-sm text-slate-400 border border-dashed border-slate-200 rounded-2xl">
+                <svg className="w-12 h-12 mx-auto text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p className="font-semibold text-slate-500">No documents uploaded</p>
+                <p className="text-xs mt-1">The applicant has not uploaded any documents for this application.</p>
+                <p className="text-xs mt-2 text-amber-600">Consider using "Request Missing Documents" if documents are required.</p>
+              </div>
             )}
           </div>
         </div>
       </div>
+
+      {showDocumentRequestModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-xl max-w-lg w-full max-h-96 overflow-y-auto p-8 space-y-6">
+            <div>
+              <h3 className="text-2xl font-bold text-slate-900">Request Missing Documents</h3>
+              <p className="text-sm text-slate-500 mt-2">Select the documents needed from the applicant and provide a reason.</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-3">Documents Needed</label>
+              <div className="space-y-2 max-h-32 overflow-y-auto border border-slate-200 rounded-xl p-3">
+                {['Transcript', 'Proof of Enrollment', 'Medical Certificate', 'CGPA Verification', 'Recommendation Letter', 'Financial Documents', 'ID Copy', 'Essay'].map(docType => (
+                  <label key={docType} className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded">
+                    <input
+                      type="checkbox"
+                      checked={selectedMissingDocs.includes(docType)}
+                      onChange={(e) => {
+                        if (e.currentTarget.checked) {
+                          setSelectedMissingDocs(prev => [...prev, docType]);
+                        } else {
+                          setSelectedMissingDocs(prev => prev.filter(doc => doc !== docType));
+                        }
+                      }}
+                      className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-slate-700">{docType}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Reason for Request</label>
+              <textarea
+                value={documentRequestReason}
+                onChange={(e) => setDocumentRequestReason(e.currentTarget.value)}
+                rows={3}
+                className="w-full px-4 py-3 border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                placeholder="Explain why these documents are needed and what should be included..."
+              />
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowDocumentRequestModal(false);
+                  setSelectedMissingDocs([]);
+                  setDocumentRequestReason('');
+                }}
+                className="px-6 py-3 rounded-xl text-sm font-bold border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (application && onRequestDocuments) {
+                    onRequestDocuments(application.id, selectedMissingDocs, documentRequestReason);
+                    setShowDocumentRequestModal(false);
+                    setSelectedMissingDocs([]);
+                    setDocumentRequestReason('');
+                  }
+                }}
+                className="px-6 py-3 rounded-xl text-sm font-bold bg-amber-600 text-white hover:bg-amber-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={selectedMissingDocs.length === 0 || !documentRequestReason.trim()}
+              >
+                Send Request
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

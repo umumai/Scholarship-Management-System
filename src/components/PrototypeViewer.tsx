@@ -13,6 +13,7 @@ import SystemLogsScreen, { SystemLogEntry } from './screens/SystemLogsScreen';
 import SystemReportsScreen from './screens/SystemReportsScreen';
 import AccountManagementScreen, { ManagedAccount } from './screens/AccountManagementScreen';
 import ReviewerWorkspaceScreen from './screens/ReviewerWorkspaceScreen';
+import DocumentResubmissionModal from './DocumentResubmissionModal';
 import { ICONS } from '../constants';
 
 const mmuLogoUrl = 'data:image/jpeg;base64,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';
@@ -45,6 +46,7 @@ type Notification = {
   role: Role;
   message: string;
   createdAt: string;
+  seen?: boolean;
 };
 
 type PrototypeViewerProps = {
@@ -98,6 +100,13 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
   const [registerName, setRegisterName] = useState('');
   const [registerEmail, setRegisterEmail] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
+  const [applicationAcademicSummary, setApplicationAcademicSummary] = useState('');
+  const [applicationCGPA, setApplicationCGPA] = useState('');
+
+  // Document Resubmission Modal State
+  const [showResubmissionModal, setShowResubmissionModal] = useState(false);
+  const [resubmissionApplication, setResubmissionApplication] = useState<Application | null>(null);
+  const [isResubmittingDocuments, setIsResubmittingDocuments] = useState(false);
 
   const samplePdfDataUrl = 'data:application/pdf;base64,JVBERi0xLjQKJcKlwrHDqwoKMSAwIG9iago8PC9UeXBlL0NhdGFsb2cvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iago8PC9UeXBlL1BhZ2VzL0tpZHNbMyAwIFJdL0NvdW50IDE+PgplbmRvYmoKMyAwIG9iago8PC9UeXBlL1BhZ2UvUGFyZW50IDIgMCBSL01lZGlhQm94WzAgMCA1OTUuMjggODQxLjg5XS9Db250ZW50cyA0IDAgUi9SZXNvdXJjZXM8PC9Gb250PDwvRjEgNSAwIFI+Pj4+PgplbmRvYmoKNCAwIG9iago8PC9MZW5ndGggMTY+PnN0cmVhbQpCVAovRjEgMTIgVGYKNDAgNzAwIFRkCihNb2NrIFBERikgVGoKRVQKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8L1R5cGUvRm9udC9TdWJ0eXBlL1R5cGUxL0Jhc2VGb250L0hlbHZldGljYT4+CmVuZG9iagoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDk1IDAwMDAwIG4gCjAwMDAwMDAxNzIgMDAwMDAgbiAKMDAwMDAwMDI0MSAwMDAwMCBuIAowMDAwMDAwMzU5IDAwMDAwIG4gCjAwMDAwMDA0NTQgMDAwMDAgbiAKdHJhaWxlcgo8PC9Sb290IDEgMCBSL1NpemUgNj4+CnN0YXJ0eHJlZgo1NjcKJSVFT0Y=';
   const mockDocxUrl = '/documents/mock-essay.docx';
@@ -107,7 +116,7 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
   const [applications, setApplications] = useState<Application[]>([]);
   const [reviewers, setReviewers] = useState<{ id: string; name: string }[]>([]);
   const [managedAccounts, setManagedAccounts] = useState<ManagedAccount[]>([]);
-  const [systemLogs] = useState<SystemLogEntry[]>([
+  const [systemLogs, setSystemLogs] = useState<SystemLogEntry[]>([
     {
       id: 'log-1',
       timestamp: '2024-05-20 09:12',
@@ -256,6 +265,10 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
       assignedReviewer: application.assigned_reviewer || undefined,
       review: mapReview(application.review),
       documents: mapDocuments(application.documents),
+      documentRequestReason: application.document_request_reason || undefined,
+      requestedDocuments: application.requested_documents ? JSON.parse(application.requested_documents) : undefined,
+      documentRequestedAt: application.document_requested_at || undefined,
+      documentRequestedBy: application.document_requested_by || undefined,
     };
   };
 
@@ -279,36 +292,42 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
       role: Role.STUDENT,
       message: 'Successfully submitted an application.',
       createdAt: '2024-05-21 09:12',
+      seen: false,
     },
     {
       id: 'notif-student-2',
       role: Role.STUDENT,
       message: 'Your application has been reviewed.',
       createdAt: '2024-05-21 11:01',
+      seen: false,
     },
     {
       id: 'notif-reviewer-1',
       role: Role.REVIEWER,
       message: 'You have been assigned to an applicant.',
       createdAt: '2024-05-20 10:03',
+      seen: false,
     },
     {
       id: 'notif-reviewer-2',
       role: Role.REVIEWER,
       message: 'Successfully reviewed and sent to the committee for approval.',
       createdAt: '2024-05-20 14:17',
+      seen: false,
     },
     {
       id: 'notif-committee-1',
       role: Role.COMMITTEE,
       message: 'An applicant is ready for approval.',
       createdAt: '2024-05-21 08:33',
+      seen: false,
     },
     {
       id: 'notif-admin-1',
       role: Role.ADMIN,
       message: 'New scholarship draft requires review.',
       createdAt: '2024-05-20 09:12',
+      seen: false,
     },
   ]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -325,6 +344,17 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
     setReviewers([]);
     setManagedAccounts([]);
     setFrame('landing');
+  };
+
+  const isScholarshipOpen = (deadline: string) => {
+    if (!deadline) {
+      return true;
+    }
+    const deadlineDate = new Date(`${deadline}T23:59:59`);
+    if (Number.isNaN(deadlineDate.getTime())) {
+      return true;
+    }
+    return deadlineDate >= new Date();
   };
 
   const filteredScholarships = useMemo(() => {
@@ -345,6 +375,26 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
     }
     return filteredScholarships;
   }, [filteredScholarships, selectedRole]);
+
+  const getNextDeadline = useMemo(() => {
+    const now = new Date();
+    const upcomingDeadlines = activeScholarships
+      .filter(s => s.deadline)
+      .map(s => ({
+        scholarship: s,
+        deadlineDate: new Date(`${s.deadline}T23:59:59`),
+      }))
+      .filter(d => !Number.isNaN(d.deadlineDate.getTime()) && d.deadlineDate > now)
+      .sort((a, b) => a.deadlineDate.getTime() - b.deadlineDate.getTime());
+
+    if (upcomingDeadlines.length === 0) {
+      return 'No upcoming deadlines';
+    }
+
+    const nextDeadline = upcomingDeadlines[0].deadlineDate;
+    const daysRemaining = Math.ceil((nextDeadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return `${daysRemaining} Day${daysRemaining !== 1 ? 's' : ''}`;
+  }, [activeScholarships]);
 
   useEffect(() => {
     if (frame === 'profile') {
@@ -449,20 +499,32 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
         role,
         message,
         createdAt: new Date().toISOString().replace('T', ' ').slice(0, 16),
+        seen: false,
       },
       ...prev,
     ]);
   };
 
-  const isScholarshipOpen = (deadline: string) => {
-    if (!deadline) {
-      return true;
-    }
-    const deadlineDate = new Date(`${deadline}T23:59:59`);
-    if (Number.isNaN(deadlineDate.getTime())) {
-      return true;
-    }
-    return deadlineDate >= new Date();
+  const markNotificationsAsSeen = () => {
+    setNotifications(prev => 
+      prev.map(notif => notif.role === selectedRole ? { ...notif, seen: true } : notif)
+    );
+  };
+
+  const addSystemLog = (action: string, target: string, status: 'Success' | 'Failed' = 'Success', notes?: string) => {
+    const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 16);
+    const actorName = userData.name || ROLE_DISPLAY_NAME[selectedRole || Role.STUDENT];
+    const newLog: SystemLogEntry = {
+      id: `log-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      timestamp,
+      actorName,
+      actorRole: selectedRole || Role.STUDENT,
+      action,
+      target,
+      status,
+      notes,
+    };
+    setSystemLogs(prev => [newLog, ...prev]);
   };
 
   const loadDashboardData = async (token: string, userRole: Role) => {
@@ -538,7 +600,8 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
       id: formatUserId(mappedRole, currentUser.id),
     }));
     setIsLoggedIn(true);
-    setFrame('dashboard');
+    // Don't automatically set frame to dashboard - let user stay on current page
+    // Only load dashboard data if they navigate to dashboard
     await loadDashboardData(token, mappedRole);
   };
 
@@ -553,6 +616,7 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
       setAuthToken(response.access_token);
       localStorage.setItem('sms_token', response.access_token);
       await loadCurrentUser(response.access_token);
+      setFrame('dashboard');
     } catch (error) {
       setAuthError('Invalid email or password.');
     }
@@ -630,6 +694,8 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
     setActiveStep(0); // Start with Identity Verification
     setUploadedFile(null);
     setVerifyingPassword('');
+    setApplicationAcademicSummary('');
+    setApplicationCGPA('');
     setFrame('apply-flow');
   };
 
@@ -704,6 +770,7 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
           },
           ...prev,
         ]);
+        addSystemLog('Created scholarship', draft.name, 'Success');
       } else {
         const updated = await api.updateScholarship(authToken, Number(draft.id), {
           ...payload,
@@ -717,6 +784,7 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
           description: updated.description,
           criteria: updated.criteria || [],
         } : item));
+        addSystemLog('Updated scholarship', draft.name, 'Success');
       }
       setFrame('scholarship-list');
     } catch (error) {
@@ -760,18 +828,77 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
           try {
             const document = await api.uploadDocument(authToken, application.id, uploadedFile);
             mapped.documents = mapDocuments([document]);
+            
+            // Fetch the updated application to get all documents
+            const updatedApp = await api.listApplications(authToken);
+            const fullApplication = updatedApp.find(app => app.id === application.id);
+            if (fullApplication) {
+              mapped.documents = mapDocuments(fullApplication.documents);
+            }
           } catch (error) {
             console.error(error);
           }
         }
         setApplications(prev => [mapped, ...prev]);
         addNotification(Role.STUDENT, `Successfully submitted an application for ${selectedScholarship.name}.`);
+        addSystemLog('Submitted application', `App #${mapped.id} - ${selectedScholarship.name}`, 'Success');
         setFrame('dashboard');
         alert('Application submitted.');
       })
       .catch(() => {
         alert('Unable to submit application.');
       });
+  };
+
+  const handleResubmitDocuments = async (files: File[]) => {
+    if (!resubmissionApplication || !authToken) {
+      alert('Missing application or authentication.');
+      return;
+    }
+
+    setIsResubmittingDocuments(true);
+    try {
+      const appId = Number(resubmissionApplication.id);
+      // Upload each file
+      const uploadPromises = files.map(file =>
+        api.uploadDocument(authToken, appId, file)
+      );
+
+      const uploadedDocs = await Promise.all(uploadPromises);
+
+      // Mark application as resubmitted
+      await api.markResubmitted(authToken, appId);
+
+      // Refresh applications to get updated status
+      const updatedApps = await api.listApplications(authToken);
+      const updatedApp = updatedApps.find(app => app.id === appId);
+
+      if (updatedApp) {
+        const mapped = mapApplication(updatedApp);
+        setApplications(prev =>
+          prev.map(app => (app.id === mapped.id ? mapped : app))
+        );
+      }
+
+      const scholarshipName = scholarships.find(s => s.id === resubmissionApplication.scholarshipId)?.name || 'Scholarship';
+      addNotification(
+        Role.STUDENT,
+        `Resubmitted ${files.length} document(s) for ${scholarshipName}.`
+      );
+      addSystemLog(
+        'Resubmitted documents',
+        `App #${resubmissionApplication.id} - ${files.length} file(s)`,
+        'Success'
+      );
+
+      setShowResubmissionModal(false);
+      setResubmissionApplication(null);
+    } catch (error) {
+      console.error('Error resubmitting documents:', error);
+      alert('Failed to resubmit documents. Please try again.');
+    } finally {
+      setIsResubmittingDocuments(false);
+    }
   };
 
   const assignReviewer = (applicationId: string, reviewerId: string, reviewerName: string) => {
@@ -830,10 +957,63 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
         }));
         addNotification(Role.REVIEWER, `Successfully reviewed ${studentName} for ${scholarshipName}.`);
         addNotification(Role.COMMITTEE, `Review completed for ${studentName} (${scholarshipName}).`);
+        addSystemLog('Submitted evaluation', `App #${applicationId}`, 'Success', scholarshipName);
         alert('Review submitted successfully.');
       })
       .catch(() => {
         alert('Unable to submit review.');
+      });
+  };
+
+  const requestMissingDocuments = (applicationId: string, missingDocuments: string[], reason: string) => {
+    if (!authToken) {
+      alert('Please log in again.');
+      return;
+    }
+    if (!reason.trim()) {
+      alert('Please provide a reason for the document request.');
+      return;
+    }
+    if (missingDocuments.length === 0) {
+      alert('Please select at least one missing document.');
+      return;
+    }
+
+    const targetApplication = applications.find(app => app.id === applicationId);
+    const scholarshipName = scholarships.find(s => s.id === targetApplication?.scholarshipId)?.name || 'a scholarship';
+    const studentName = targetApplication?.studentName || 'an applicant';
+    const requestedAt = new Date().toISOString().replace('T', ' ').slice(0, 16);
+
+    // Call backend API to persist document request
+    api.requestDocuments(authToken, Number(applicationId), {
+      missing_documents: missingDocuments,
+      reason,
+      requested_at: requestedAt,
+    })
+      .then((updatedApp) => {
+        // Map the response and update local state
+        const mapped = mapApplication(updatedApp);
+        setApplications(prev => prev.map(app => app.id === applicationId ? mapped : app));
+
+        addNotification(
+          Role.STUDENT,
+          `Your application for ${scholarshipName} needs additional documents. Reason: ${reason}`
+        );
+        addNotification(
+          Role.REVIEWER,
+          `Document request sent to ${studentName} for ${scholarshipName}.`
+        );
+        addSystemLog(
+          'Requested missing documents',
+          `App #${applicationId}`,
+          'Success',
+          `${missingDocuments.length} document(s) requested: ${missingDocuments.join(', ')}`
+        );
+        alert('Document request sent to applicant.');
+      })
+      .catch((error) => {
+        console.error('Failed to request documents:', error);
+        alert('Failed to send document request. Please try again.');
       });
   };
 
@@ -862,6 +1042,12 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
           addNotification(Role.STUDENT, `Your request for ${scholarshipName} has been rejected.`);
         }
         addNotification(Role.COMMITTEE, `Successfully ${decision === 'Awarded' ? 'approved' : 'rejected'} ${studentName} for ${scholarshipName}.`);
+        addSystemLog(
+          decision === 'Awarded' ? 'Approved award' : 'Rejected award',
+          `App #${applicationId}`,
+          'Success',
+          scholarshipName
+        );
       })
       .catch(() => {
         alert('Unable to submit decision.');
@@ -892,6 +1078,7 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
           },
           ...prev,
         ]);
+        addSystemLog('Created account', `${createdUser.role === 'reviewer' ? 'Reviewer' : 'Committee'} → ${account.name}`, 'Success');
         alert(`Account created. Temporary password: ${temporaryPassword}`);
       })
       .catch(() => {
@@ -906,6 +1093,7 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
         scholarship={reviewScholarship}
         reviewerName={reviewerDisplayName}
         onSubmitReview={submitReview}
+        onRequestDocuments={requestMissingDocuments}
         onBack={handleBackToDashboard}
       />
     );
@@ -931,7 +1119,12 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
             applications={applications}
             scholarships={scholarships}
             activeScholarships={activeScholarships}
+            nextDeadline={getNextDeadline}
             onFindScholarships={() => setFrame('scholarship-list')}
+            onOpenResubmissionModal={(app) => {
+              setResubmissionApplication(app);
+              setShowResubmissionModal(true);
+            }}
           />
         );
       case Role.REVIEWER:
@@ -1330,11 +1523,23 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="col-span-2">
                 <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Academic Achievement Summary</label>
-                <textarea className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 h-32" placeholder="Detail your academic milestones and achievements..."></textarea>
+                <textarea 
+                  value={applicationAcademicSummary} 
+                  onChange={(e) => setApplicationAcademicSummary(e.target.value)}
+                  autoComplete="off"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 h-32" 
+                  placeholder="Detail your academic milestones and achievements..."></textarea>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Latest CGPA</label>
-                <input type="text" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. 3.95" />
+                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Latest CGPA/SPM Result</label>
+                <input 
+                  type="text" 
+                  value={applicationCGPA}
+                  onChange={(e) => setApplicationCGPA(e.target.value)}
+                  autoComplete="off"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" 
+                  placeholder="e.g. 3.95/7As 3Bs" 
+                />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Matric ID (Verified)</label>
@@ -1434,16 +1639,21 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
             </button>
             <div className="relative">
               <button
-                onClick={() => setShowNotifications(prev => !prev)}
+                onClick={() => {
+                  setShowNotifications(prev => !prev);
+                  if (!showNotifications) {
+                    markNotificationsAsSeen();
+                  }
+                }}
                 className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-all relative"
                 title="Notifications"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 11-6 0h6z" />
                 </svg>
-                {roleNotifications.length > 0 && (
+                {roleNotifications.filter(n => !n.seen).length > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center">
-                    {roleNotifications.length}
+                    {roleNotifications.filter(n => !n.seen).length}
                   </span>
                 )}
               </button>
@@ -1584,6 +1794,18 @@ const PrototypeViewer: React.FC<PrototypeViewerProps> = ({
           ) : null}
         </main>
       </div>
+
+      <DocumentResubmissionModal
+        isOpen={showResubmissionModal}
+        application={resubmissionApplication}
+        scholarship={resubmissionApplication ? scholarships.find(s => s.id === resubmissionApplication.scholarshipId) || null : null}
+        onClose={() => {
+          setShowResubmissionModal(false);
+          setResubmissionApplication(null);
+        }}
+        onSubmit={handleResubmitDocuments}
+        isLoading={isResubmittingDocuments}
+      />
     </div>
     );
   };

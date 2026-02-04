@@ -5,6 +5,12 @@ export enum Role {
   ADMIN = 'Administrator'
 }
 
+export interface DocumentRequirement {
+  category: string;
+  description: string;
+  isRequired: boolean;
+}
+
 export interface Scholarship {
   id: string;
   name: string;
@@ -12,6 +18,7 @@ export interface Scholarship {
   criteria: string[];
   deadline: string;
   amount: string;
+  requiredDocuments?: DocumentRequirement[];
 }
 
 export type ReviewStatus = 'Pending' | 'Submitted';
@@ -45,10 +52,14 @@ export interface Application {
   id: string;
   scholarshipId: string;
   studentName: string;
-  status: 'Draft' | 'Submitted' | 'Under Review' | 'Awarded' | 'Rejected';
+  status: 'Draft' | 'Submitted' | 'Under Review' | 'Document Request' | 'Resubmitted' | 'Awarded' | 'Rejected';
   submissionDate?: string;
   assignedReviewer?: string;
   review?: ReviewEvaluation;
   documents?: ApplicationDocument[];
+  documentRequestReason?: string;
+  requestedDocuments?: string[];
+  documentRequestedAt?: string;
+  documentRequestedBy?: string;
 }
 

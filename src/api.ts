@@ -43,6 +43,10 @@ export type ApiApplication = {
   assigned_reviewer?: string | null;
   status: string;
   submission_date: string;
+  document_request_reason?: string | null;
+  requested_documents?: string | null;  // JSON string
+  document_requested_at?: string | null;
+  document_requested_by?: string | null;
   review?: ApiReview | null;
   documents?: ApiDocument[];
 };
@@ -147,6 +151,20 @@ export const api = {
       method: 'POST',
       token,
     }),
+  requestDocuments: (
+    token: string,
+    applicationId: number,
+    payload: {
+      missing_documents: string[];
+      reason: string;
+      requested_at: string;
+    }
+  ) =>
+    apiRequest<ApiApplication>(`/applications/${applicationId}/request-documents`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify(payload),
+    }),
   listReviews: (token: string) => apiRequest<ApiReview[]>('/reviews', { token }),
   submitReview: (
     token: string,
@@ -181,6 +199,11 @@ export const api = {
       body: formData,
     });
   },
+  markResubmitted: (token: string, applicationId: number) =>
+    apiRequest<ApiApplication>(`/documents/${applicationId}/mark-resubmitted`, {
+      method: 'POST',
+      token,
+    }),
   listDocuments: (token: string, applicationId: number) =>
     apiRequest<ApiDocument[]>(`/documents/application/${applicationId}`, { token }),
 };

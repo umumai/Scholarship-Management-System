@@ -7,7 +7,9 @@ type StudentDashboardProps = {
   applications: Application[];
   scholarships: Scholarship[];
   activeScholarships: Scholarship[];
+  nextDeadline: string;
   onFindScholarships: () => void;
+  onOpenResubmissionModal?: (app: Application) => void;
 };
 
 const StudentDashboard: React.FC<StudentDashboardProps> = ({
@@ -16,14 +18,19 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
   applications,
   scholarships,
   activeScholarships,
+  nextDeadline,
   onFindScholarships,
+  onOpenResubmissionModal,
 }) => {
   const firstName = userName.split(' ')[0];
   const decisionUpdates = applications.filter(app => app.status === 'Awarded' || app.status === 'Rejected');
+  const documentRequests = applications.filter(app => app.status === 'Document Request');
   const statusBadgeStyles: Record<Application['status'], string> = {
     Draft: 'bg-slate-100 text-slate-600',
     Submitted: 'bg-blue-50 text-blue-600',
     'Under Review': 'bg-amber-50 text-amber-700',
+    'Document Request': 'bg-red-50 text-red-700',
+    Resubmitted: 'bg-purple-50 text-purple-700',
     Awarded: 'bg-emerald-50 text-emerald-700',
     Rejected: 'bg-rose-50 text-rose-700',
   };
@@ -54,9 +61,50 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
         </div>
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Next Deadline</p>
-          <p className="text-3xl font-black text-orange-600">14 Days</p>
+          <p className="text-3xl font-black text-orange-600">{nextDeadline}</p>
         </div>
       </div>
+
+      {documentRequests.length > 0 && (
+        <div className="bg-red-50 rounded-3xl border border-red-200 shadow-sm overflow-hidden mb-8">
+          <div className="p-6 border-b border-red-100 font-bold flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4v2m0 4v2M6.343 3.665c.966-.645 2.026-.997 3.157-.997.597 0 1.177.075 1.74.22M19.5 4.5A3 3 0 0019 6m0 0l-.5.5M19 6v2m0 4v2m0 0l.5.5M3 11h18m-9 9h9" />
+              </svg>
+              <div>
+                <span className="text-red-700 font-bold">Documents Needed</span>
+                <p className="text-xs text-red-600">{documentRequests.length} application(s) need document resubmission</p>
+              </div>
+            </div>
+            <span className="text-xs text-red-600 font-bold">ACTION REQUIRED</span>
+          </div>
+          <div className="divide-y divide-red-100">
+            {documentRequests.map(app => (
+              <div key={app.id} className="px-6 py-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">
+                      {scholarships.find(s => s.id === app.scholarshipId)?.name}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      <strong>Missing:</strong> {(app.requestedDocuments || []).join(', ') || 'See details below'}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-xs text-red-600 italic">{app.documentRequestReason}</p>
+                <p className="text-xs text-slate-400">Requested on {app.documentRequestedAt} by {app.documentRequestedBy}</p>
+                <button
+                  onClick={() => onOpenResubmissionModal?.(app)}
+                  className="mt-2 px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  ↑ Resubmit Documents
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden mb-8">
         <div className="p-6 border-b border-slate-100 font-bold flex justify-between items-center">
