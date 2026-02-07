@@ -8,8 +8,8 @@ export default defineConfig(({ mode }) => {
       server: {
         port: 3001,
         strictPort: false,
-        host: 'SE_Scholarship_System',
-        allowedHosts: ['se_scholarship_system', 'pseudoviperous-knotless-mauricio.ngrok-free.dev'],
+        host: '0.0.0.0',
+        allowedHosts: ['.ngrok-free.dev', '.ngrok.io'],
         proxy: {
           '/api': {
             target: 'http://localhost:8000',

@@ -116,9 +116,9 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   me: (token: string) => apiRequest<ApiUser>('/users/me', { token }),
-  listScholarships: (token: string) => apiRequest<ApiScholarship[]>('/scholarships', { token }),
+  listScholarships: (token: string) => apiRequest<ApiScholarship[]>('/scholarships/', { token }),
   createScholarship: (token: string, payload: Omit<ApiScholarship, 'id'>) =>
-    apiRequest<ApiScholarship>('/scholarships', {
+    apiRequest<ApiScholarship>('/scholarships/', {
       method: 'POST',
       token,
       body: JSON.stringify(payload),
@@ -130,13 +130,13 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   deleteScholarship: (token: string, scholarshipId: number) =>
-    apiRequest<void>(`/scholarships/${scholarshipId}`, { method: 'DELETE', token }),
-  listApplications: (token: string) => apiRequest<ApiApplication[]>('/applications', { token }),
+    apiRequest<void>(`/scholarships/${scholarshipId}/`, { method: 'DELETE', token }),
+  listApplications: (token: string) => apiRequest<ApiApplication[]>('/applications/', { token }),
   submitApplication: (
     token: string,
     payload: { scholarship_id: number; status: string; submission_date: string }
   ) =>
-    apiRequest<ApiApplication>('/applications', {
+    apiRequest<ApiApplication>('/applications/', {
       method: 'POST',
       token,
       body: JSON.stringify(payload),
@@ -165,7 +165,7 @@ export const api = {
       token,
       body: JSON.stringify(payload),
     }),
-  listReviews: (token: string) => apiRequest<ApiReview[]>('/reviews', { token }),
+  listReviews: (token: string) => apiRequest<ApiReview[]>('/reviews/', { token }),
   submitReview: (
     token: string,
     payload: {
@@ -176,16 +176,16 @@ export const api = {
       submitted_at: string;
     }
   ) =>
-    apiRequest<ApiReview>('/reviews', {
+    apiRequest<ApiReview>('/reviews/', {
       method: 'POST',
       token,
       body: JSON.stringify(payload),
     }),
   listUsersByRole: (token: string, role: string) =>
     apiRequest<ApiUser[]>(`/users/role/${role}`, { token }),
-  listUsers: (token: string) => apiRequest<ApiUser[]>('/users', { token }),
+  listUsers: (token: string) => apiRequest<ApiUser[]>('/users/', { token }),
   createUser: (token: string, payload: { name: string; email: string; password: string; role: string }) =>
-    apiRequest<ApiUser>('/users', {
+    apiRequest<ApiUser>('/users/', {
       method: 'POST',
       token,
       body: JSON.stringify(payload),
