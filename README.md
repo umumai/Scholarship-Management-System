@@ -1,1 +1,0 @@
-# Scholarship-Management-System

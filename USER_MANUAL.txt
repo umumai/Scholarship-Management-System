@@ -1,0 +1,58 @@
+Scholarship Management System - User Manual
+
+1) Start the Servers (Local)
+Backend (API):
+- Open a terminal in the project root folder.
+- Run:
+  cd backend
+  ../.venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+Frontend (Web App):
+- Open a second terminal in the project root folder.
+- Run:
+  npm install
+  npm run dev
+- Vite will print a URL like http://localhost:3001. Open that in your browser.
+
+Important:
+- http://localhost:8000 is the backend API and is NOT the site UI.
+- You should open the Vite URL (usually http://localhost:3001 or similar) in the browser.
+
+2) Access the System
+- Open the frontend URL shown by Vite (example: http://localhost:3001).
+
+3) Register a Student Account
+- Select the Student role.
+- Click Register.
+- Enter Full Name, Email, and Password.
+- Click Create Account.
+
+4) Log In
+- Select a role on the landing page.
+- Enter the email and password for that role.
+- Click Sign In.
+
+5) Roles and Main Capabilities
+- Student:
+  - View scholarships.
+  - Apply to scholarships.
+  - View application status.
+- Reviewer:
+  - View assigned applications.
+  - Submit reviews.
+- Committee:
+  - View applications and scholarship statuses.
+  - Decide awards.
+- Admin:
+  - View system overview and logs.
+
+6) Test Accounts
+- Admin: admin@example.com / admin123
+- Student: student@example.com / student123
+- Reviewer: reviewer@example.com / reviewer123
+- Committee: committee@example.com / committee123
+
+7) Troubleshooting
+- If login fails, confirm the backend is running on http://localhost:8000.
+- If you see CORS errors, restart the backend server.
+
